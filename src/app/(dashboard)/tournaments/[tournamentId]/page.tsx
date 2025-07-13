@@ -165,10 +165,15 @@ export default function TournamentDetailPage() {
                   </Button>
                 )}
                 
-                {canManage && tournament.status !== "draft" && (
-                  <Button variant="outline" size="lg">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Manage Tournament
+                {canManage && (
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    onClick={() => router.push(`/tournaments/${tournamentId}/edit`)}
+                    className="flex items-center space-x-2"
+                  >
+                    <Edit className="h-4 w-4" />
+                    <span>Edit Tournament</span>
                   </Button>
                 )}
               </div>
