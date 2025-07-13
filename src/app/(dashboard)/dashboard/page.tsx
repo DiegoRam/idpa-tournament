@@ -48,6 +48,12 @@ const ROLE_CONFIG = {
 export default function DashboardPage() {
   const { signOut } = useAuthActions();
   const currentUser = useQuery(api.userAuth.getCurrentUser);
+  
+  // Get user's club if they're a club owner
+  const userClub = useQuery(
+    api.clubs.getClubsByOwner, 
+    currentUser?.role === "clubOwner" ? { ownerId: currentUser._id } : "skip"
+  );
 
   const handleSignOut = async () => {
     await signOut();
@@ -189,39 +195,86 @@ export default function DashboardPage() {
 
               {currentUser.role === "clubOwner" && (
                 <>
-                  <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
-                    <CardHeader className="pb-3">
-                      <Calendar className="h-6 w-6 text-purple-400 mb-2" />
-                      <CardTitle className="text-sm">Create Tournament</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Button variant="tactical" size="sm" className="w-full">
-                        New Tournament
-                      </Button>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
-                    <CardHeader className="pb-3">
-                      <Users className="h-6 w-6 text-purple-400 mb-2" />
-                      <CardTitle className="text-sm">Manage Squads</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Button variant="outline" size="sm" className="w-full">
-                        Squad Manager
-                      </Button>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
-                    <CardHeader className="pb-3">
-                      <Trophy className="h-6 w-6 text-purple-400 mb-2" />
-                      <CardTitle className="text-sm">Tournament Results</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <Button variant="outline" size="sm" className="w-full">
-                        View Results
-                      </Button>
-                    </CardContent>
-                  </Card>
+                  {userClub && userClub.length === 0 ? (
+                    // No club yet - show club creation option
+                    <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors col-span-full">
+                      <CardHeader className="pb-3">
+                        <Building className="h-6 w-6 text-purple-400 mb-2" />
+                        <CardTitle className="text-sm">Create Your Club First</CardTitle>
+                        <CardDescription className="text-gray-400">
+                          You need to create a club before you can host tournaments
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <Button 
+                          variant="tactical" 
+                          size="sm" 
+                          className="w-full"
+                          onClick={() => window.location.href = "/clubs/create"}
+                        >
+                          Create IDPA Club
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  ) : (
+                    // Has club - show tournament management options
+                    <>
+                      <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
+                        <CardHeader className="pb-3">
+                          <Calendar className="h-6 w-6 text-purple-400 mb-2" />
+                          <CardTitle className="text-sm">Create Tournament</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Button 
+                            variant="tactical" 
+                            size="sm" 
+                            className="w-full"
+                            onClick={() => window.location.href = "/tournaments/create"}
+                          >
+                            New Tournament
+                          </Button>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
+                        <CardHeader className="pb-3">
+                          <Users className="h-6 w-6 text-purple-400 mb-2" />
+                          <CardTitle className="text-sm">Manage Squads</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Button variant="outline" size="sm" className="w-full">
+                            Squad Manager
+                          </Button>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
+                        <CardHeader className="pb-3">
+                          <Trophy className="h-6 w-6 text-purple-400 mb-2" />
+                          <CardTitle className="text-sm">Tournament Results</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <Button variant="outline" size="sm" className="w-full">
+                            View Results
+                          </Button>
+                        </CardContent>
+                      </Card>
+                      <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
+                        <CardHeader className="pb-3">
+                          <Building className="h-6 w-6 text-purple-400 mb-2" />
+                          <CardTitle className="text-sm">My Club</CardTitle>
+                          {userClub?.[0] && (
+                            <CardDescription className="text-gray-400">
+                              {userClub[0].name}
+                            </CardDescription>
+                          )}
+                        </CardHeader>
+                        <CardContent>
+                          <Button variant="outline" size="sm" className="w-full">
+                            Manage Club
+                          </Button>
+                        </CardContent>
+                      </Card>
+                    </>
+                  )}
                 </>
               )}
 
@@ -271,7 +324,12 @@ export default function DashboardPage() {
                       <CardTitle className="text-sm">Find Tournaments</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <Button variant="tactical" size="sm" className="w-full">
+                      <Button 
+                        variant="tactical" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => window.location.href = "/tournaments"}
+                      >
                         Browse Events
                       </Button>
                     </CardContent>

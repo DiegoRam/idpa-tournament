@@ -1,5 +1,57 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, action } from "./_generated/server";
+import { api } from "./_generated/api";
+
+// Create a new IDPA club (action that gets current user)
+export const createClubWithCurrentUser = action({
+  args: {
+    name: v.string(),
+    location: v.object({
+      address: v.string(),
+      city: v.string(),
+      state: v.string(),
+      country: v.string(),
+      coordinates: v.object({
+        lat: v.number(),
+        lng: v.number(),
+      }),
+    }),
+    contact: v.object({
+      email: v.string(),
+      phone: v.optional(v.string()),
+      website: v.optional(v.string()),
+    }),
+    logo: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Get current user
+    const currentUser = await ctx.runQuery(api.userAuth.getCurrentUser);
+    if (!currentUser) {
+      throw new Error("You must be logged in to create a club");
+    }
+
+    if (currentUser.role !== "clubOwner" && currentUser.role !== "admin") {
+      throw new Error("Only Club Owners and Admins can create clubs");
+    }
+
+    // Check if user already owns a club
+    const existingClub = await ctx.runQuery(api.clubs.getClubsByOwner, { 
+      ownerId: currentUser._id 
+    });
+    
+    if (existingClub.length > 0) {
+      throw new Error("You already own a club. Each user can only own one club.");
+    }
+
+    // Create the club
+    const clubId = await ctx.runMutation(api.clubs.createClub, {
+      ...args,
+      ownerId: currentUser._id,
+    });
+
+    return clubId;
+  },
+});
 
 // Create a new IDPA club
 export const createClub = mutation({
