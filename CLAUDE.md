@@ -43,6 +43,16 @@ npm run convex:deploy
 - **Always run `npm run dev`** for full-stack development (includes both Next.js and Convex)
 - Convex runs on a separate process and provides real-time database capabilities
 - Use `--turbopack` flag for faster Next.js development builds
+- **For Convex commands, use `npx convex dev --once`** to avoid timeout errors when running as agent
+
+### Testing Commands
+```bash
+# Run complete test suite
+# Visit http://localhost:3000/test after starting dev server
+
+# Deploy Convex schema and functions once
+npx convex dev --once
+```
 
 ## Architecture Overview
 
@@ -176,6 +186,13 @@ The application uses Convex's real-time document database with these key collect
 - Follow official IDPA rules for penalties
 - Test scoring accuracy against known results
 
+### Test Suite
+- **Complete test suite available at** `http://localhost:3000/test`
+- Test database functions: user creation, club management, tournament setup
+- Test UI components: buttons, badges, cards with tactical theme
+- Real-time data validation and error reporting
+- IDPA-specific component testing (divisions, classifications)
+
 ## Important Context
 
 ### Target Users
@@ -189,6 +206,30 @@ The application uses Convex's real-time document database with these key collect
 - IDPA rule compliance
 - Mobile-first design for outdoor use
 - Multi-language support (Spanish primary, English secondary)
+
+## Implementation Status
+
+### ✅ Phase 1: Foundation (COMPLETED)
+- **Database Schema**: Complete 9-table schema with 28 optimized indexes
+- **Backend Functions**: User management, club operations, tournament lifecycle  
+- **UI Components**: Tactical theme with IDPA-specific components
+- **Real-time Setup**: Convex provider configured for live data
+- **Type Safety**: Complete TypeScript interfaces for all IDPA data
+- **Test Suite**: Comprehensive testing at `/test` route
+
+### 🚧 Phase 2: Core Features (NEXT)
+- Squad selection interface with member visibility
+- IDPA scoring interface for Security Officers
+- Tournament calendar with advanced filtering
+- Real-time leaderboards by division/classification
+- User authentication and profile management
+
+### 📋 Phase 3: Advanced Features (PLANNED)
+- Digital badge generation and social sharing
+- Visual stage designer tool
+- Offline scoring with sync
+- Custom award categories
+- Spectator mode with QR codes
 
 ## Documentation References
 
