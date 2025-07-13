@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { useAction } from "convex/react";
+import { useState, useEffect } from "react";
+import { useAction, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,17 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("");
+  
+  // Check if user is already authenticated
+  const currentUser = useQuery(api.userAuth.getCurrentUser);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (currentUser) {
+      console.log("User already authenticated, redirecting to dashboard");
+      router.push("/dashboard");
+    }
+  }, [currentUser, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

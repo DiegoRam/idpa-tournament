@@ -16,20 +16,12 @@ const isProtectedRoute = createRouteMatcher([
 ]);
 
 export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
-  const isAuthenticated = await convexAuth.isAuthenticated();
-
-  // Redirect authenticated users away from auth pages
-  if (isAuthPage(request) && isAuthenticated) {
-    return nextjsMiddlewareRedirect(request, "/dashboard");
-  }
-
-  // Redirect unauthenticated users to login for protected routes
-  if (isProtectedRoute(request) && !isAuthenticated) {
-    const loginUrl = `/login?redirect=${encodeURIComponent(request.nextUrl.pathname)}`;
-    return nextjsMiddlewareRedirect(request, loginUrl);
-  }
-
-  // Allow public routes and API routes to pass through
+  // Let all requests pass through
+  // Authentication protection is handled by:
+  // 1. Dashboard layout for protected routes
+  // 2. Login/Register pages for auth redirects
+  
+  // This middleware just sets up Convex Auth context
 });
 
 export const config = {

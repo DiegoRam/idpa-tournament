@@ -7,14 +7,29 @@ export function cn(...inputs: ClassValue[]) {
 
 // IDPA-specific utilities
 export const IDPA_DIVISIONS = [
-  { value: "SSP", label: "Stock Service Pistol", description: "Factory stock service pistols" },
-  { value: "ESP", label: "Enhanced Service Pistol", description: "Enhanced service pistols" },
-  { value: "CDP", label: "Custom Defensive Pistol", description: "Custom defensive pistols" },
-  { value: "CCP", label: "Compact Carry Pistol", description: "Compact carry pistols" },
-  { value: "REV", label: "Revolver", description: "Revolvers" },
-  { value: "BUG", label: "Back-Up Gun", description: "Back-up guns" },
-  { value: "PCC", label: "Pistol Caliber Carbine", description: "Pistol caliber carbines" },
-  { value: "CO", label: "Carry Optics", description: "Carry optics pistols" },
+  { code: "SSP", name: "Stock Service Pistol", description: "Factory stock service pistols" },
+  { code: "ESP", name: "Enhanced Service Pistol", description: "Enhanced service pistols" },
+  { code: "CDP", name: "Custom Defensive Pistol", description: "Custom defensive pistols" },
+  { code: "CCP", name: "Compact Carry Pistol", description: "Compact carry pistols" },
+  { code: "REV", name: "Revolver", description: "Revolvers" },
+  { code: "BUG", name: "Back-Up Gun", description: "Back-up guns" },
+  { code: "PCC", name: "Pistol Caliber Carbine", description: "Pistol caliber carbines" },
+  { code: "CO", name: "Carry Optics", description: "Carry optics pistols" },
+] as const;
+
+export const MATCH_TYPES = [
+  { value: "local", label: "Local Match", description: "Local club match" },
+  { value: "sanctioned", label: "Sanctioned Match", description: "IDPA sanctioned match" },
+  { value: "championship", label: "Championship", description: "Regional or national championship" },
+  { value: "classifier", label: "Classifier", description: "Classification match" },
+  { value: "practice", label: "Practice", description: "Practice session" },
+] as const;
+
+export const CURRENCIES = [
+  { code: "ARS", symbol: "$", name: "Argentine Peso" },
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "€", name: "Euro" },
+  { code: "BRL", symbol: "R$", name: "Brazilian Real" },
 ] as const;
 
 export const IDPA_CLASSIFICATIONS = [

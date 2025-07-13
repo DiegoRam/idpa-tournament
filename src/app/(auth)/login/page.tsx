@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
+import { useQuery } from "convex/react";
+import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -15,6 +17,17 @@ export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
+  
+  // Check if user is already authenticated
+  const currentUser = useQuery(api.userAuth.getCurrentUser);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (currentUser) {
+      console.log("User already authenticated, redirecting to dashboard");
+      router.push("/dashboard");
+    }
+  }, [currentUser, router]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -35,10 +48,11 @@ export default function LoginPage() {
         flow: "signIn"
       });
       
-      // Wait for session to be established, then redirect
+      // Wait longer for session to be established, then redirect
       setTimeout(() => {
+        console.log("Redirecting to dashboard after login");
         window.location.href = "/dashboard";
-      }, 1500);
+      }, 2000);
       
     } catch (error) {
       console.error("Login error:", error);
