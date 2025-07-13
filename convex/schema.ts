@@ -1,7 +1,10 @@
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
+import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
+  // Include Convex Auth tables
+  ...authTables,
   // Users table with multi-role support
   users: defineTable({
     email: v.string(),
@@ -300,7 +303,7 @@ export default defineSchema({
     
     // IDPA score calculations
     rawTime: v.number(),           // Total raw time for all strings
-    pointsDown: v.number(),        // Total points down (0×down0 + 1×down1 + 3×down3 + 5×miss)
+    pointsDown: v.number(),        // Total points down (0ï¿½down0 + 1ï¿½down1 + 3ï¿½down3 + 5ï¿½miss)
     penaltyTime: v.number(),       // Total penalty time in seconds  
     finalTime: v.number(),         // rawTime + pointsDown + penaltyTime
     stagePoints: v.number(),       // Stage points for match scoring

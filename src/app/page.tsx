@@ -22,11 +22,20 @@ export default function Home() {
             Real-time scoring, squad management, and digital achievements.
           </p>
           <div className="flex flex-wrap justify-center gap-4 mt-8">
-            <Button variant="tactical" size="lg" className="tactical-glow">
-              Get Started
+            <Button 
+              variant="tactical" 
+              size="lg" 
+              className="tactical-glow"
+              onClick={() => window.location.href = '/test'}
+            >
+              Test System
             </Button>
-            <Button variant="outline" size="lg">
-              View Demo
+            <Button 
+              variant="outline" 
+              size="lg"
+              onClick={() => window.location.href = '/register'}
+            >
+              Register (Coming Soon)
             </Button>
           </div>
         </div>
@@ -52,7 +61,7 @@ export default function Home() {
             </CardHeader>
             <CardContent>
               <CardDescription>
-                See who's registered in each squad before joining. Find friends and clubmates easily.
+                See who&apos;s registered in each squad before joining. Find friends and clubmates easily.
               </CardDescription>
             </CardContent>
           </Card>

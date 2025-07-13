@@ -99,6 +99,14 @@ export const updateUserProfile = mutation({
       v.literal("REV"), v.literal("BUG"), v.literal("PCC"), v.literal("CO")
     )),
     profilePicture: v.optional(v.string()),
+    preferences: v.optional(v.object({
+      notifications: v.boolean(),
+      defaultDivision: v.optional(v.string()),
+      homeLocation: v.optional(v.object({
+        lat: v.number(),
+        lng: v.number(),
+      })),
+    })),
     demographics: v.optional(v.object({
       gender: v.optional(v.string()),
       birthDate: v.optional(v.number()),
