@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useAction, useQuery } from "convex/react";
+import { useMutation, useQuery } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
@@ -80,7 +80,7 @@ export default function CreateTournamentPage() {
   const router = useRouter();
   const currentUser = useQuery(api.userAuth.getCurrentUser);
   const userClub = useQuery(api.clubs.getUserClub);
-  const createTournament = useAction(api.tournaments.createTournament);
+  const createTournament = useMutation(api.tournaments.createTournament);
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);

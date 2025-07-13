@@ -42,14 +42,17 @@ const DIVISION_COLORS = {
 
 export default function TournamentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedDivision, setSelectedDivision] = useState<string>("");
-  const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [selectedDivision, setSelectedDivision] = useState<string>("all");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
 
-  // Get upcoming tournaments
-  const upcomingTournaments = useQuery(api.tournaments.getUpcomingTournaments, {});
-  
   // Get current user to determine role-based actions
   const currentUser = useQuery(api.userAuth.getCurrentUser);
+
+  // Get upcoming tournaments - include drafts for club owners
+  const upcomingTournaments = useQuery(api.tournaments.searchTournaments, {
+    searchTerm: "",
+    status: currentUser?.role === "clubOwner" ? undefined : "published"
+  });
 
   // Filter tournaments based on search and filters
   const filteredTournaments = upcomingTournaments?.filter(tournament => {
@@ -58,10 +61,10 @@ export default function TournamentsPage() {
       tournament.location.venue.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tournament.location.address.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesDivision = !selectedDivision || 
+    const matchesDivision = !selectedDivision || selectedDivision === "all" ||
       tournament.divisions.includes(selectedDivision as any);
     
-    const matchesStatus = !selectedStatus || tournament.status === selectedStatus;
+    const matchesStatus = !selectedStatus || selectedStatus === "all" || tournament.status === selectedStatus;
     
     return matchesSearch && matchesDivision && matchesStatus;
   }) || [];
@@ -145,10 +148,10 @@ export default function TournamentsPage() {
                     <SelectValue placeholder="All Divisions" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Divisions</SelectItem>
+                    <SelectItem value="all">All Divisions</SelectItem>
                     {IDPA_DIVISIONS.map(division => (
-                      <SelectItem key={division.value} value={division.value}>
-                        {division.label}
+                      <SelectItem key={division.code} value={division.code}>
+                        {division.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -161,7 +164,7 @@ export default function TournamentsPage() {
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="published">Open for Registration</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="completed">Completed</SelectItem>

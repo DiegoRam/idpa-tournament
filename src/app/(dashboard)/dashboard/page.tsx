@@ -207,7 +207,7 @@ export default function DashboardPage() {
                           variant="tactical" 
                           size="sm" 
                           className="w-full"
-                          onClick={() => window.location.href = "/dashboard/clubs/create"}
+                          onClick={() => window.location.href = "/clubs/create"}
                         >
                           Create IDPA Club
                         </Button>
@@ -226,7 +226,7 @@ export default function DashboardPage() {
                             variant="tactical" 
                             size="sm" 
                             className="w-full"
-                            onClick={() => window.location.href = "/dashboard/tournaments/create"}
+                            onClick={() => window.location.href = "/tournaments/create"}
                           >
                             New Tournament
                           </Button>
@@ -325,7 +325,7 @@ export default function DashboardPage() {
                         variant="tactical" 
                         size="sm" 
                         className="w-full"
-                        onClick={() => window.location.href = "/dashboard/tournaments"}
+                        onClick={() => window.location.href = "/tournaments"}
                       >
                         Browse Events
                       </Button>
