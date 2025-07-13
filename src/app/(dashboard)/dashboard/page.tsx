@@ -49,11 +49,8 @@ export default function DashboardPage() {
   const { signOut } = useAuthActions();
   const currentUser = useQuery(api.userAuth.getCurrentUser);
   
-  // Get user's club if they're a club owner
-  const userClub = useQuery(
-    api.clubs.getClubsByOwner, 
-    currentUser?.role === "clubOwner" ? { ownerId: currentUser._id } : "skip"
-  );
+  // Get user's club
+  const userClub = useQuery(api.clubs.getUserClub);
 
   const handleSignOut = async () => {
     await signOut();
@@ -195,7 +192,7 @@ export default function DashboardPage() {
 
               {currentUser.role === "clubOwner" && (
                 <>
-                  {userClub && userClub.length === 0 ? (
+                  {!userClub ? (
                     // No club yet - show club creation option
                     <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors col-span-full">
                       <CardHeader className="pb-3">
@@ -261,9 +258,9 @@ export default function DashboardPage() {
                         <CardHeader className="pb-3">
                           <Building className="h-6 w-6 text-purple-400 mb-2" />
                           <CardTitle className="text-sm">My Club</CardTitle>
-                          {userClub?.[0] && (
+                          {userClub && (
                             <CardDescription className="text-gray-400">
-                              {userClub[0].name}
+                              {userClub.name}
                             </CardDescription>
                           )}
                         </CardHeader>

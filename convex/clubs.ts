@@ -379,3 +379,46 @@ export const reactivateClub = mutation({
     return { success: true };
   },
 });
+
+// Get user's club (simplified for dashboard)
+export const getUserClub = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      return null;
+    }
+
+    // Get the user record
+    const userId = identity.subject.split('|')[0];
+    const authAccount = await ctx.db
+      .query("authAccounts")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .first();
+
+    if (!authAccount) {
+      return null;
+    }
+
+    const user = await ctx.db.get(authAccount.userId as any);
+    if (!user) {
+      return null;
+    }
+
+    // If user has a clubId, get the club
+    if (user.clubId) {
+      return await ctx.db.get(user.clubId);
+    }
+
+    // If user is a club owner, find their club
+    if (user.role === "clubOwner") {
+      const club = await ctx.db
+        .query("clubs")
+        .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
+        .first();
+      return club;
+    }
+
+    return null;
+  },
+});

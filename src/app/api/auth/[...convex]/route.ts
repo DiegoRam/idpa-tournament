@@ -1,3 +1,3 @@
-import { convexAuthNextjsHandler } from "@convex-dev/auth/nextjs/server";
+import { createRouteHandler } from "@convex-dev/auth/nextjs/server";
  
-export const { GET, POST } = convexAuthNextjsHandler();
+export const { GET, POST } = createRouteHandler();
