@@ -109,20 +109,31 @@ export const getCurrentUser = query({
   args: {},
   handler: async (ctx) => {
     const identity = await ctx.auth.getUserIdentity();
-    console.log("getCurrentUser - identity:", identity);
     
     if (!identity) {
-      console.log("getCurrentUser - no identity found");
       return null;
     }
 
+    // The identity subject contains userId|sessionId, we need just the userId part
+    const userId = identity.subject.split('|')[0];
+    
+    // Find the auth account by userId
+    const authAccount = await ctx.db
+      .query("authAccounts")
+      .filter((q) => q.eq(q.field("userId"), userId))
+      .first();
+    
+    if (!authAccount) {
+      return null;
+    }
+
+    // Find our user by the providerAccountId (which is the email)
     const user = await ctx.db
       .query("users")
       .withIndex("by_email")
-      .filter((q) => q.eq(q.field("email"), identity.email))
+      .filter((q) => q.eq(q.field("email"), authAccount.providerAccountId))
       .first();
 
-    console.log("getCurrentUser - user found:", user ? "yes" : "no", user?.email);
     return user;
   },
 });

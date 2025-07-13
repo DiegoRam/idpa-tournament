@@ -49,8 +49,6 @@ export default function DashboardPage() {
   const { signOut } = useAuthActions();
   const currentUser = useQuery(api.userAuth.getCurrentUser);
 
-  console.log("Dashboard - currentUser query result:", currentUser);
-
   const handleSignOut = async () => {
     await signOut();
   };

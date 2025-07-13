@@ -30,7 +30,6 @@ export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
   }
 
   // Allow public routes and API routes to pass through
-  // No additional logic needed as Convex Auth handles the rest
 });
 
 export const config = {
