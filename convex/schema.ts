@@ -3,22 +3,27 @@ import { v } from "convex/values";
 import { authTables } from "@convex-dev/auth/server";
 
 export default defineSchema({
-  // Include Convex Auth tables
+  // Include Convex Auth tables but override users table
   ...authTables,
-  // Users table with multi-role support
+  
+  // Override users table with simplified schema for auth compatibility
   users: defineTable({
     email: v.string(),
     name: v.string(),
-    role: v.union(
+    
+    // Basic role - set after registration
+    role: v.optional(v.union(
       v.literal("admin"),
       v.literal("clubOwner"), 
       v.literal("securityOfficer"),
       v.literal("shooter")
-    ),
+    )),
+    
+    // All IDPA-specific fields are optional - completed later
     idpaMemberNumber: v.optional(v.string()),
     
-    // IDPA classifications per division
-    classifications: v.object({
+    // IDPA classifications per division - optional
+    classifications: v.optional(v.object({
       SSP: v.optional(v.union(
         v.literal("MA"), v.literal("EX"), v.literal("SS"), 
         v.literal("MM"), v.literal("NV"), v.literal("UN")
@@ -51,7 +56,7 @@ export default defineSchema({
         v.literal("MA"), v.literal("EX"), v.literal("SS"), 
         v.literal("MM"), v.literal("NV"), v.literal("UN")
       )),
-    }),
+    })),
     
     primaryDivision: v.optional(v.union(
       v.literal("SSP"), v.literal("ESP"), v.literal("CDP"), v.literal("CCP"),
@@ -60,16 +65,16 @@ export default defineSchema({
     
     clubId: v.optional(v.id("clubs")),
     profilePicture: v.optional(v.string()),
-    friends: v.array(v.id("users")),
+    friends: v.optional(v.array(v.id("users"))),
     
-    preferences: v.object({
+    preferences: v.optional(v.object({
       notifications: v.boolean(),
       defaultDivision: v.optional(v.string()),
       homeLocation: v.optional(v.object({
         lat: v.number(),
         lng: v.number(),
       })),
-    }),
+    })),
     
     demographics: v.optional(v.object({
       gender: v.optional(v.string()),
@@ -78,8 +83,11 @@ export default defineSchema({
       isLawEnforcement: v.optional(v.boolean()),
     })),
     
-    createdAt: v.number(),
-    lastActive: v.number(),
+    // Profile completion tracking
+    profileCompleted: v.optional(v.boolean()),
+    
+    createdAt: v.optional(v.number()),
+    lastActive: v.optional(v.number()),
   })
     .index("by_email", ["email"])
     .index("by_role", ["role"])

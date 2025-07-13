@@ -25,11 +25,23 @@ export default function LoginPage() {
     const email = formData.get("email") as string;
     const password = formData.get("password") as string;
 
+    // Add the flow parameter to the form data
+    formData.set("flow", "signIn");
+
+    console.log("Login attempt:", { email, hasPassword: !!password });
+
     try {
-      await signIn("password", { email, password, flow: "signIn" });
+      // Pass FormData directly to signIn according to Convex Auth documentation
+      const result = await signIn("password", formData);
+      console.log("Login result:", result);
+      
+      // SignIn doesn't return a result on success, it just doesn't throw
+      console.log("Login successful, redirecting to dashboard");
       router.push("/dashboard");
     } catch (error) {
-      setError("Invalid email or password");
+      console.error("Login error:", error);
+      const errorMessage = error instanceof Error ? error.message : "Invalid email or password";
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }

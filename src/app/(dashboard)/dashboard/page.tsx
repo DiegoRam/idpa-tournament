@@ -49,6 +49,8 @@ export default function DashboardPage() {
   const { signOut } = useAuthActions();
   const currentUser = useQuery(api.userAuth.getCurrentUser);
 
+  console.log("Dashboard - currentUser query result:", currentUser);
+
   const handleSignOut = async () => {
     await signOut();
   };
@@ -334,15 +336,25 @@ export default function DashboardPage() {
                   </div>
                 )}
                 <div>
+                  <Label className="text-gray-400">Profile Status</Label>
+                  <div className="flex items-center space-x-2">
+                    {currentUser.profileCompleted ? (
+                      <Badge variant="default" className="bg-green-600">Complete</Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-yellow-500 text-yellow-400">Incomplete</Badge>
+                    )}
+                  </div>
+                </div>
+                <div>
                   <Label className="text-gray-400">Member Since</Label>
                   <p className="text-white">
-                    {new Date(currentUser.createdAt).toLocaleDateString()}
+                    {currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : "Recent"}
                   </p>
                 </div>
                 <div>
                   <Label className="text-gray-400">Last Active</Label>
                   <p className="text-white">
-                    {new Date(currentUser.lastActive).toLocaleDateString()}
+                    {currentUser.lastActive ? new Date(currentUser.lastActive).toLocaleDateString() : "Recently"}
                   </p>
                 </div>
               </div>

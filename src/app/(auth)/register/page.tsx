@@ -51,7 +51,6 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedRole, setSelectedRole] = useState<string>("");
-  const [selectedDivision, setSelectedDivision] = useState<string>("");
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -63,7 +62,6 @@ export default function RegisterPage() {
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
     const name = formData.get("name") as string;
-    const idpaMemberNumber = formData.get("idpaMemberNumber") as string;
 
     if (password !== confirmPassword) {
       setError("Passwords do not match");
@@ -83,8 +81,6 @@ export default function RegisterPage() {
         password,
         name,
         role: selectedRole as "admin" | "clubOwner" | "securityOfficer" | "shooter",
-        idpaMemberNumber: idpaMemberNumber || undefined,
-        primaryDivision: selectedDivision || undefined,
       });
       
       router.push("/login?registered=true");
@@ -224,48 +220,18 @@ export default function RegisterPage() {
               )}
             </div>
 
-            {/* IDPA Information */}
-            {(selectedRole === "shooter" || selectedRole === "securityOfficer") && (
-              <div className="space-y-4">
-                <h3 className="text-lg font-semibold text-green-400">IDPA Information</h3>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="idpaMemberNumber">
-                      IDPA Member Number {selectedRole === "securityOfficer" && "(Required)"}
-                    </Label>
-                    <Input
-                      id="idpaMemberNumber"
-                      name="idpaMemberNumber"
-                      type="text"
-                      placeholder="Enter your IDPA member number"
-                      required={selectedRole === "securityOfficer"}
-                    />
-                  </div>
-                  
-                  {selectedRole === "shooter" && (
-                    <div className="space-y-2">
-                      <Label htmlFor="primaryDivision">Primary Division (Optional)</Label>
-                      <Select value={selectedDivision} onValueChange={setSelectedDivision}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your primary division" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {IDPA_DIVISIONS.map((division) => (
-                            <SelectItem key={division.value} value={division.value}>
-                              <div className="flex items-center space-x-2">
-                                <Badge variant="division" className="text-xs">
-                                  {division.label}
-                                </Badge>
-                                <span className="text-sm">{division.description}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
+            {/* Role-specific Information */}
+            {selectedRoleInfo && (
+              <div className="p-4 bg-slate-800 rounded-lg">
+                <h4 className="font-medium text-green-400 mb-2">Role Information</h4>
+                <p className="text-sm text-gray-300">
+                  As a <strong>{selectedRoleInfo.label}</strong>, you'll be able to {selectedRoleInfo.description.toLowerCase()}.
+                </p>
+                {(selectedRole === "shooter" || selectedRole === "securityOfficer") && (
+                  <p className="text-xs text-gray-400 mt-2">
+                    💡 You can add your IDPA member number and other details after registration.
+                  </p>
+                )}
               </div>
             )}
             
