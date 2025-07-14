@@ -417,3 +417,433 @@ export const getUserClub = query({
     return null;
   },
 });
+
+// Enhanced Club Analytics for Admin Dashboard
+export const getClubAnalytics = query({
+  args: {
+    clubId: v.optional(v.id("clubs")),
+    timeRange: v.optional(v.union(
+      v.literal("7d"),
+      v.literal("30d"),
+      v.literal("90d"),
+      v.literal("1y")
+    )),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access or club owner access
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Authentication required");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user) {
+      throw new Error("User not found");
+    }
+
+    // Check permissions
+    if (user.role !== "admin" && user.role !== "clubOwner") {
+      throw new Error("Admin or Club Owner access required");
+    }
+
+    const now = Date.now();
+    const timeRanges = {
+      "7d": 7 * 24 * 60 * 60 * 1000,
+      "30d": 30 * 24 * 60 * 60 * 1000,
+      "90d": 90 * 24 * 60 * 60 * 1000,
+      "1y": 365 * 24 * 60 * 60 * 1000,
+    };
+
+    const range = args.timeRange || "30d";
+    const startTime = now - timeRanges[range];
+
+    // If specific club requested, verify access
+    let targetClubId = args.clubId;
+    if (user.role === "clubOwner" && !args.clubId) {
+      // Get club owner's club
+      const ownedClub = await ctx.db
+        .query("clubs")
+        .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
+        .first();
+      targetClubId = ownedClub?._id;
+    }
+
+    if (user.role === "clubOwner" && args.clubId && user.clubId !== args.clubId) {
+      throw new Error("Can only view analytics for your own club");
+    }
+
+    // Get club data
+    const club = targetClubId ? await ctx.db.get(targetClubId) : null;
+    if (targetClubId && !club) {
+      throw new Error("Club not found");
+    }
+
+    // Get club members
+    const members = targetClubId ? await ctx.db
+      .query("users")
+      .withIndex("by_club", (q) => q.eq("clubId", targetClubId))
+      .collect() : [];
+
+    // Get club tournaments
+    const tournaments = targetClubId ? await ctx.db
+      .query("tournaments")
+      .withIndex("by_club", (q) => q.eq("clubId", targetClubId))
+      .collect() : [];
+
+    // Filter tournaments by time range
+    const recentTournaments = tournaments.filter(t => t.date > startTime);
+
+    // Get registrations for club tournaments
+    const allRegistrations = await Promise.all(
+      tournaments.map(async (tournament) => {
+        const registrations = await ctx.db
+          .query("registrations")
+          .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
+          .collect();
+        return registrations.map(reg => ({ ...reg, tournament }));
+      })
+    );
+
+    const registrations = allRegistrations.flat();
+    const recentRegistrations = registrations.filter(r => 
+      r.registeredAt > startTime
+    );
+
+    // Get scores for club tournaments
+    const allScores = await Promise.all(
+      tournaments.map(async (tournament) => {
+        const stages = await ctx.db
+          .query("stages")
+          .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
+          .collect();
+        
+        const stageScores = await Promise.all(
+          stages.map(async (stage) => {
+            const scores = await ctx.db
+              .query("scores")
+              .withIndex("by_stage_shooter", (q) => q.eq("stageId", stage._id))
+              .collect();
+            return scores.map(score => ({ ...score, stage, tournament }));
+          })
+        );
+        
+        return stageScores.flat();
+      })
+    );
+
+    const scores = allScores.flat();
+    const recentScores = scores.filter(s => s.scoredAt > startTime);
+
+    // Calculate analytics
+    const analytics = {
+      overview: {
+        clubName: club?.name || "All Clubs",
+        totalMembers: members.length,
+        totalTournaments: tournaments.length,
+        recentTournaments: recentTournaments.length,
+        totalRegistrations: registrations.length,
+        recentRegistrations: recentRegistrations.length,
+        averageTournamentSize: tournaments.length > 0 ? 
+          Math.round(registrations.length / tournaments.length) : 0,
+      },
+      memberBreakdown: {
+        byRole: {
+          shooters: members.filter(m => m.role === "shooter").length,
+          securityOfficers: members.filter(m => m.role === "securityOfficer").length,
+          clubOwners: members.filter(m => m.role === "clubOwner").length,
+          admins: members.filter(m => m.role === "admin").length,
+        },
+        byDivision: members.reduce((acc, member) => {
+          const division = member.primaryDivision || "unspecified";
+          acc[division] = (acc[division] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+        activeMembers: members.filter(m => 
+          m.lastActive && m.lastActive > startTime
+        ).length,
+      },
+      tournamentPerformance: {
+        totalTournaments: tournaments.length,
+        publishedTournaments: tournaments.filter(t => t.status === "published").length,
+        activeTournaments: tournaments.filter(t => t.status === "active").length,
+        completedTournaments: tournaments.filter(t => t.status === "completed").length,
+        averageRegistrations: tournaments.length > 0 ? 
+          Math.round(registrations.length / tournaments.length) : 0,
+        capacityUtilization: tournaments.length > 0 ? 
+          Math.round((registrations.length / tournaments.reduce((sum, t) => sum + t.capacity, 0)) * 100) : 0,
+      },
+      registrationTrends: {
+        totalRegistrations: registrations.length,
+        recentRegistrations: recentRegistrations.length,
+        registrationGrowth: registrations.length > 0 ? 
+          Math.round((recentRegistrations.length / registrations.length) * 100) : 0,
+        divisionBreakdown: recentRegistrations.reduce((acc, reg) => {
+          acc[reg.division] = (acc[reg.division] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>),
+        statusBreakdown: {
+          registered: registrations.filter(r => r.status === "registered").length,
+          checkedIn: registrations.filter(r => r.status === "checked_in").length,
+          completed: registrations.filter(r => r.status === "completed").length,
+          cancelled: registrations.filter(r => r.status === "cancelled").length,
+        },
+      },
+      scoringData: {
+        totalScores: scores.length,
+        recentScores: recentScores.length,
+        averageCompletionRate: tournaments.length > 0 ? 
+          Math.round((scores.length / (registrations.length * recentTournaments.length || 1)) * 100) : 0,
+        dnfRate: scores.length > 0 ? 
+          Math.round((scores.filter(s => s.dnf).length / scores.length) * 100) : 0,
+        dqRate: scores.length > 0 ? 
+          Math.round((scores.filter(s => s.dq).length / scores.length) * 100) : 0,
+      },
+      timeRange: {
+        range,
+        startTime,
+        endTime: now,
+      },
+    };
+
+    return analytics;
+  },
+});
+
+// Get club performance metrics for admin dashboard
+export const getClubPerformanceMetrics = query({
+  args: {
+    limit: v.optional(v.number()),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Authentication required");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user || user.role !== "admin") {
+      throw new Error("Admin access required");
+    }
+
+    const limit = args.limit || 20;
+    const now = Date.now();
+    const thirtyDaysAgo = now - (30 * 24 * 60 * 60 * 1000);
+
+    // Get all clubs
+    const clubs = await ctx.db.query("clubs").collect();
+
+    // Calculate metrics for each club
+    const clubMetrics = await Promise.all(
+      clubs.map(async (club) => {
+        // Get club members
+        const members = await ctx.db
+          .query("users")
+          .withIndex("by_club", (q) => q.eq("clubId", club._id))
+          .collect();
+
+        // Get club tournaments
+        const tournaments = await ctx.db
+          .query("tournaments")
+          .withIndex("by_club", (q) => q.eq("clubId", club._id))
+          .collect();
+
+        const recentTournaments = tournaments.filter(t => t.date > thirtyDaysAgo);
+
+        // Get registrations for club tournaments
+        const allRegistrations = await Promise.all(
+          tournaments.map(async (tournament) => {
+            return await ctx.db
+              .query("registrations")
+              .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
+              .collect();
+          })
+        );
+
+        const registrations = allRegistrations.flat();
+        const recentRegistrations = registrations.filter(r => 
+          r.registeredAt > thirtyDaysAgo
+        );
+
+        // Calculate activity score
+        const activityScore = 
+          (recentTournaments.length * 10) +
+          (recentRegistrations.length * 2) +
+          (members.filter(m => m.lastActive && m.lastActive > thirtyDaysAgo).length * 1);
+
+        return {
+          club,
+          metrics: {
+            totalMembers: members.length,
+            activeMembers: members.filter(m => 
+              m.lastActive && m.lastActive > thirtyDaysAgo
+            ).length,
+            totalTournaments: tournaments.length,
+            recentTournaments: recentTournaments.length,
+            totalRegistrations: registrations.length,
+            recentRegistrations: recentRegistrations.length,
+            activityScore,
+            averageTournamentSize: tournaments.length > 0 ? 
+              Math.round(registrations.length / tournaments.length) : 0,
+          },
+        };
+      })
+    );
+
+    // Sort by activity score
+    const sortedClubs = clubMetrics
+      .sort((a, b) => b.metrics.activityScore - a.metrics.activityScore)
+      .slice(0, limit);
+
+    return {
+      clubs: sortedClubs,
+      summary: {
+        totalClubs: clubs.length,
+        activeClubs: clubs.filter(c => c.active).length,
+        inactiveClubs: clubs.filter(c => !c.active).length,
+        averageMembers: Math.round(
+          clubMetrics.reduce((sum, c) => sum + c.metrics.totalMembers, 0) / clubs.length
+        ),
+        totalTournaments: clubMetrics.reduce((sum, c) => sum + c.metrics.totalTournaments, 0),
+        totalRegistrations: clubMetrics.reduce((sum, c) => sum + c.metrics.totalRegistrations, 0),
+      },
+    };
+  },
+});
+
+// Get detailed club information for admin management
+export const getClubDetailsForAdmin = query({
+  args: { clubId: v.id("clubs") },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Authentication required");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user || user.role !== "admin") {
+      throw new Error("Admin access required");
+    }
+
+    const club = await ctx.db.get(args.clubId);
+    if (!club) {
+      throw new Error("Club not found");
+    }
+
+    // Get club owner details
+    const owner = await ctx.db.get(club.ownerId);
+
+    // Get all club members
+    const members = await ctx.db
+      .query("users")
+      .withIndex("by_club", (q) => q.eq("clubId", args.clubId))
+      .collect();
+
+    // Get club tournaments
+    const tournaments = await ctx.db
+      .query("tournaments")
+      .withIndex("by_club", (q) => q.eq("clubId", args.clubId))
+      .collect();
+
+    // Get audit logs for this club
+    const auditLogs = await ctx.db
+      .query("auditLogs")
+      .withIndex("by_entity", (q) => q.eq("entityType", "clubs").eq("entityId", args.clubId))
+      .order("desc")
+      .take(10);
+
+    return {
+      club,
+      owner,
+      members,
+      tournaments,
+      auditLogs,
+      statistics: {
+        totalMembers: members.length,
+        membersByRole: {
+          shooters: members.filter(m => m.role === "shooter").length,
+          securityOfficers: members.filter(m => m.role === "securityOfficer").length,
+          clubOwners: members.filter(m => m.role === "clubOwner").length,
+          admins: members.filter(m => m.role === "admin").length,
+        },
+        tournamentStats: {
+          total: tournaments.length,
+          draft: tournaments.filter(t => t.status === "draft").length,
+          published: tournaments.filter(t => t.status === "published").length,
+          active: tournaments.filter(t => t.status === "active").length,
+          completed: tournaments.filter(t => t.status === "completed").length,
+        },
+        accountAge: club.createdAt ? Date.now() - club.createdAt : 0,
+      },
+    };
+  },
+});
+
+// Admin function to manage club status
+export const updateClubStatus = mutation({
+  args: {
+    clubId: v.id("clubs"),
+    active: v.boolean(),
+    reason: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Verify admin access
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) {
+      throw new Error("Authentication required");
+    }
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", identity.email!))
+      .first();
+
+    if (!user || user.role !== "admin") {
+      throw new Error("Admin access required");
+    }
+
+    const club = await ctx.db.get(args.clubId);
+    if (!club) {
+      throw new Error("Club not found");
+    }
+
+    const oldStatus = club.active;
+
+    // Update club status
+    await ctx.db.patch(args.clubId, {
+      active: args.active,
+    });
+
+    // Log the status change
+    await ctx.db.insert("auditLogs", {
+      userId: user._id,
+      action: args.active ? "club_activated" : "club_deactivated",
+      entityType: "clubs",
+      entityId: args.clubId,
+      oldValues: { active: oldStatus },
+      newValues: { active: args.active },
+      timestamp: Date.now(),
+      severity: "medium",
+    });
+
+    return {
+      success: true,
+      oldStatus,
+      newStatus: args.active,
+      reason: args.reason,
+    };
+  },
+});

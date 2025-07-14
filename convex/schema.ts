@@ -505,4 +505,120 @@ export default defineSchema({
     updatedAt: v.number(),
   })
     .index("by_user", ["userId"]),
+
+  // Audit trail for administrative actions
+  auditLogs: defineTable({
+    userId: v.id("users"), // Who performed the action
+    action: v.string(), // What action was performed
+    entityType: v.string(), // Type of entity affected (user, tournament, club, etc.)
+    entityId: v.optional(v.string()), // ID of affected entity
+    oldValues: v.optional(v.any()), // Previous state
+    newValues: v.optional(v.any()), // New state
+    ipAddress: v.optional(v.string()),
+    userAgent: v.optional(v.string()),
+    timestamp: v.number(),
+    severity: v.union(
+      v.literal("low"),
+      v.literal("medium"),
+      v.literal("high"),
+      v.literal("critical")
+    ),
+  })
+    .index("by_user", ["userId"])
+    .index("by_timestamp", ["timestamp"])
+    .index("by_entity", ["entityType", "entityId"])
+    .index("by_severity", ["severity"]),
+
+  // System configuration and settings
+  systemSettings: defineTable({
+    key: v.string(), // Setting key (e.g., "maintenance_mode", "max_tournament_size")
+    value: v.any(), // Setting value
+    description: v.string(), // Human-readable description
+    category: v.string(), // Category (system, tournament, scoring, etc.)
+    isPublic: v.boolean(), // Whether setting is visible to non-admins
+    lastModifiedBy: v.id("users"),
+    lastModifiedAt: v.number(),
+    createdAt: v.number(),
+  })
+    .index("by_key", ["key"])
+    .index("by_category", ["category"])
+    .index("by_public", ["isPublic"]),
+
+  // Security events and incidents
+  securityEvents: defineTable({
+    eventType: v.union(
+      v.literal("login_attempt"),
+      v.literal("failed_login"),
+      v.literal("permission_denied"),
+      v.literal("suspicious_activity"),
+      v.literal("data_breach_attempt"),
+      v.literal("system_intrusion"),
+      v.literal("malware_detection"),
+      v.literal("other")
+    ),
+    severity: v.union(
+      v.literal("info"),
+      v.literal("warning"),
+      v.literal("error"),
+      v.literal("critical")
+    ),
+    userId: v.optional(v.id("users")), // User involved (if applicable)
+    ipAddress: v.string(),
+    userAgent: v.optional(v.string()),
+    description: v.string(),
+    metadata: v.optional(v.any()), // Additional event data
+    resolved: v.boolean(),
+    resolvedBy: v.optional(v.id("users")),
+    resolvedAt: v.optional(v.number()),
+    timestamp: v.number(),
+  })
+    .index("by_timestamp", ["timestamp"])
+    .index("by_severity", ["severity"])
+    .index("by_type", ["eventType"])
+    .index("by_resolved", ["resolved"])
+    .index("by_user", ["userId"]),
+
+  // Report templates for administrative reports
+  reportTemplates: defineTable({
+    name: v.string(),
+    description: v.string(),
+    type: v.union(
+      v.literal("tournament_results"),
+      v.literal("user_analytics"),
+      v.literal("club_performance"),
+      v.literal("financial"),
+      v.literal("safety"),
+      v.literal("custom")
+    ),
+    template: v.any(), // JSON template structure
+    permissions: v.array(v.union(
+      v.literal("admin"),
+      v.literal("clubOwner"),
+      v.literal("securityOfficer")
+    )),
+    isActive: v.boolean(),
+    createdBy: v.id("users"),
+    createdAt: v.number(),
+    lastUsed: v.optional(v.number()),
+  })
+    .index("by_type", ["type"])
+    .index("by_active", ["isActive"])
+    .index("by_creator", ["createdBy"]),
+
+  // System analytics data
+  systemAnalytics: defineTable({
+    metric: v.string(), // Metric name (e.g., "daily_active_users", "tournament_count")
+    value: v.number(), // Metric value
+    dimensions: v.optional(v.any()), // Additional dimensions (e.g., by division, club)
+    timestamp: v.number(), // When metric was recorded
+    period: v.union(
+      v.literal("hourly"),
+      v.literal("daily"),
+      v.literal("weekly"),
+      v.literal("monthly")
+    ),
+  })
+    .index("by_metric", ["metric"])
+    .index("by_timestamp", ["timestamp"])
+    .index("by_period", ["period"]),
 });
