@@ -50,6 +50,27 @@ export const getSquadById = query({
   },
 });
 
+// Get squad by ID (alias for compatibility)
+export const getSquad = query({
+  args: { squadId: v.id("squads") },
+  handler: async (ctx, args) => {
+    return await ctx.db.get(args.squadId);
+  },
+});
+
+// Get squads where user is assigned as SO
+export const getSquadsByUser = query({
+  args: { userId: v.id("users") },
+  handler: async (ctx, args) => {
+    if (!args.userId) return [];
+    
+    return await ctx.db
+      .query("squads")
+      .filter((q) => q.eq(q.field("assignedSO"), args.userId))
+      .collect();
+  },
+});
+
 // Get squads with member details
 export const getSquadsWithMembers = query({
   args: {

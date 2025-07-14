@@ -344,6 +344,32 @@ export const getRegistrationByUserAndTournament = query({
   },
 });
 
+// Get registration by shooter and tournament (alias for compatibility)
+export const getRegistrationByShooterAndTournament = query({
+  args: {
+    shooterId: v.id("users"),
+    tournamentId: v.id("tournaments"),
+  },
+  handler: async (ctx, args) => {
+    const registration = await ctx.db
+      .query("registrations")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .filter((q) => q.eq(q.field("shooterId"), args.shooterId))
+      .first();
+    
+    if (registration) {
+      // Get shooter details
+      const shooter = await ctx.db.get(registration.shooterId);
+      return {
+        ...registration,
+        shooter,
+      };
+    }
+    
+    return null;
+  },
+});
+
 // Get registrations for a user
 export const getRegistrationsByUser = query({
   args: { 
