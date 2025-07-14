@@ -362,3 +362,24 @@ export const updateLastActive = mutation({
     });
   },
 });
+
+// Get club members
+export const getClubMembers = query({
+  args: { 
+    clubId: v.id("clubs"),
+    excludeUserId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, args) => {
+    const members = await ctx.db
+      .query("users")
+      .withIndex("by_club", (q) => q.eq("clubId", args.clubId))
+      .collect();
+    
+    // Exclude specific user if requested
+    if (args.excludeUserId) {
+      return members.filter(member => member._id !== args.excludeUserId);
+    }
+    
+    return members;
+  },
+});

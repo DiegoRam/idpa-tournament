@@ -77,9 +77,8 @@ export const getSquadsWithMembers = query({
     if (args.userId) {
       const user = await ctx.db.get(args.userId);
       if (user) {
-        // TODO: Implement friends functionality when needed
-        userFriends = [];
-        userClubId = undefined;
+        userFriends = user.friends || [];
+        userClubId = user.clubId;
       }
     }
 
@@ -93,21 +92,37 @@ export const getSquadsWithMembers = query({
             const shooter = await ctx.db.get(registration.shooterId);
             if (!shooter) return null;
 
+            // Get club name if shooter has a club
+            let clubName: string | undefined;
+            if (shooter.clubId) {
+              const club = await ctx.db.get(shooter.clubId);
+              clubName = club?.name;
+            }
+
             return {
               userId: shooter._id,
               name: shooter.name,
               division: registration.division,
               classification: registration.classification,
               clubId: shooter.clubId,
+              clubName,
               isFriend: userFriends.includes(shooter._id),
-              isClubmate: userClubId === shooter.clubId,
+              isClubmate: !!userClubId && userClubId === shooter.clubId,
               profilePicture: shooter.profilePicture,
             };
           })
         );
 
+        // Get SO name if assigned
+        let assignedSOName: string | undefined;
+        if (squad.assignedSO) {
+          const so = await ctx.db.get(squad.assignedSO);
+          assignedSOName = so?.name;
+        }
+
         return {
           ...squad,
+          assignedSOName,
           members: members.filter(member => member !== null),
           availableSlots: squad.maxShooters - squad.currentShooters,
         };
