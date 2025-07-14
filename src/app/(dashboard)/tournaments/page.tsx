@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "convex/react";
+import { useRouter } from "next/navigation";
 import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,10 +18,14 @@ import {
   Search,
   Filter,
   Plus,
-  ArrowLeft
+  ArrowLeft,
+  Grid,
+  List,
+  Navigation
 } from "lucide-react";
 import Link from "next/link";
 import { IDPA_DIVISIONS } from "@/lib/utils";
+import CalendarView from "@/components/tournaments/CalendarView";
 
 const TOURNAMENT_STATUS_COLORS = {
   draft: "bg-gray-500",
@@ -40,22 +45,68 @@ const DIVISION_COLORS = {
   CO: "bg-cyan-500"
 };
 
+type ViewMode = "month" | "week" | "list" | "grid";
+
 export default function TournamentsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDivision, setSelectedDivision] = useState<string>("all");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [selectedClub, setSelectedClub] = useState<string>("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [maxDistance, setMaxDistance] = useState<number | null>(null);
+  const [locationLoading, setLocationLoading] = useState(false);
+  const router = useRouter();
 
   // Get current user to determine role-based actions
   const currentUser = useQuery(api.userAuth.getCurrentUser);
 
-  // Get upcoming tournaments - include drafts for club owners
-  const upcomingTournaments = useQuery(api.tournaments.searchTournaments, {
+  // Get all active clubs for filtering
+  const activeClubs = useQuery(api.clubs.getActiveClubs);
+
+  // Get squad availability for capacity tracking
+  const getSquadAvailability = (tournamentId: string) => {
+    // This would be implemented with a separate query for each tournament
+    // For now, we'll use the tournament capacity as a fallback
+    return null;
+  };
+
+  // Get upcoming tournaments with location filtering
+  const upcomingTournaments = useQuery(api.tournaments.getUpcomingTournaments, {
+    userLocation: userLocation,
+    maxDistance: maxDistance,
+    division: selectedDivision === "all" ? undefined : selectedDivision
+  });
+
+  // Get tournaments with capacity tracking
+  const tournamentsWithCapacity = useQuery(api.tournaments.getTournamentsWithCapacity, {
+    status: currentUser?.role === "clubOwner" ? undefined : "published"
+  });
+
+  // Fallback search if location API is not available
+  const searchTournaments = useQuery(api.tournaments.searchTournaments, {
     searchTerm: "",
     status: currentUser?.role === "clubOwner" ? undefined : "published"
   });
 
+  // Use location-filtered tournaments if available, otherwise use capacity or search results
+  const tournaments = upcomingTournaments || tournamentsWithCapacity || searchTournaments;
+
+  // Calculate distance for display
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 6371; // Radius of Earth in kilometers
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
+  };
+
   // Filter tournaments based on search and filters
-  const filteredTournaments = upcomingTournaments?.filter(tournament => {
+  const filteredTournaments = tournaments?.filter(tournament => {
     const matchesSearch = !searchTerm || 
       tournament.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       tournament.location.venue.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -66,8 +117,27 @@ export default function TournamentsPage() {
     
     const matchesStatus = !selectedStatus || selectedStatus === "all" || tournament.status === selectedStatus;
     
-    return matchesSearch && matchesDivision && matchesStatus;
-  }) || [];
+    const matchesClub = !selectedClub || selectedClub === "all" || tournament.clubId === selectedClub;
+    
+    // Apply distance filter if Near Me is active
+    const matchesDistance = !maxDistance || !userLocation || 
+      calculateDistance(
+        userLocation.lat, 
+        userLocation.lng, 
+        tournament.location.coordinates.lat, 
+        tournament.location.coordinates.lng
+      ) <= maxDistance;
+    
+    return matchesSearch && matchesDivision && matchesStatus && matchesClub && matchesDistance;
+  })?.map(tournament => ({
+    ...tournament,
+    distance: userLocation ? calculateDistance(
+      userLocation.lat,
+      userLocation.lng,
+      tournament.location.coordinates.lat,
+      tournament.location.coordinates.lng
+    ) : undefined
+  })) || [];
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString("en-US", {
@@ -83,6 +153,48 @@ export default function TournamentsPage() {
       hour: "numeric",
       minute: "2-digit"
     });
+  };
+
+  const requestLocation = async () => {
+    setLocationLoading(true);
+    try {
+      if (!navigator.geolocation) {
+        throw new Error("Geolocation is not supported by this browser");
+      }
+
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // 5 minutes
+        });
+      });
+
+      const location = {
+        lat: position.coords.latitude,
+        lng: position.coords.longitude
+      };
+      
+      setUserLocation(location);
+      setMaxDistance(50); // Default to 50km radius
+    } catch (error) {
+      console.error("Error getting location:", error);
+      alert("Unable to get your location. Please check your browser settings.");
+    } finally {
+      setLocationLoading(false);
+    }
+  };
+
+  const clearLocationFilter = () => {
+    setUserLocation(null);
+    setMaxDistance(null);
+  };
+
+  const formatDistance = (distance: number): string => {
+    if (distance < 1) {
+      return `${Math.round(distance * 1000)}m`;
+    }
+    return `${distance.toFixed(1)}km`;
   };
 
   return (
@@ -127,7 +239,7 @@ export default function TournamentsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="search">Search Tournaments</Label>
                 <div className="relative">
@@ -171,12 +283,126 @@ export default function TournamentsPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <Label>Club</Label>
+                <Select value={selectedClub} onValueChange={setSelectedClub}>
+                  <SelectTrigger className="bg-slate-800 border-slate-600">
+                    <SelectValue placeholder="All Clubs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Clubs</SelectItem>
+                    {activeClubs?.map(club => (
+                      <SelectItem key={club._id} value={club._id}>
+                        {club.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Location</Label>
+                {!userLocation ? (
+                  <Button
+                    onClick={requestLocation}
+                    disabled={locationLoading}
+                    className="w-full flex items-center space-x-2"
+                    variant="outline"
+                  >
+                    <Navigation className="h-4 w-4" />
+                    <span>{locationLoading ? "Getting Location..." : "Near Me"}</span>
+                  </Button>
+                ) : (
+                  <div className="space-y-2">
+                    <Select 
+                      value={maxDistance?.toString() || "50"} 
+                      onValueChange={(value) => setMaxDistance(parseInt(value))}
+                    >
+                      <SelectTrigger className="bg-slate-800 border-slate-600">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="10">Within 10km</SelectItem>
+                        <SelectItem value="25">Within 25km</SelectItem>
+                        <SelectItem value="50">Within 50km</SelectItem>
+                        <SelectItem value="100">Within 100km</SelectItem>
+                        <SelectItem value="200">Within 200km</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={clearLocationFilter}
+                      size="sm"
+                      variant="ghost"
+                      className="w-full text-xs"
+                    >
+                      Clear Location Filter
+                    </Button>
+                  </div>
+                )}
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Tournament Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* View Mode Controls */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-400">View:</span>
+            <div className="flex items-center space-x-1 flex-wrap">
+              <Button
+                variant={viewMode === "grid" ? "tactical" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("grid")}
+                className="flex items-center space-x-2"
+              >
+                <Grid className="h-4 w-4" />
+                <span>Grid</span>
+              </Button>
+              <Button
+                variant={viewMode === "month" ? "tactical" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("month")}
+                className="flex items-center space-x-2"
+              >
+                <Calendar className="h-4 w-4" />
+                <span>Month</span>
+              </Button>
+              <Button
+                variant={viewMode === "week" ? "tactical" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("week")}
+                className="flex items-center space-x-2"
+              >
+                <Calendar className="h-4 w-4" />
+                <span>Week</span>
+              </Button>
+              <Button
+                variant={viewMode === "list" ? "tactical" : "outline"}
+                size="sm"
+                onClick={() => setViewMode("list")}
+                className="flex items-center space-x-2"
+              >
+                <List className="h-4 w-4" />
+                <span>List</span>
+              </Button>
+            </div>
+          </div>
+          
+          <div className="text-sm text-gray-400">
+            {filteredTournaments.length} tournament{filteredTournaments.length !== 1 ? 's' : ''} found
+          </div>
+        </div>
+
+        {/* Tournament Display */}
+        {(viewMode === "month" || viewMode === "week" || viewMode === "list") ? (
+          <CalendarView
+            tournaments={filteredTournaments}
+            viewMode={viewMode as "month" | "week" | "list"}
+            onViewModeChange={(mode) => setViewMode(mode)}
+            onTournamentClick={(tournament) => router.push(`/tournaments/${tournament._id}`)}
+          />
+        ) : (
+          /* Tournament Grid */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredTournaments.map(tournament => (
             <Card 
               key={tournament._id} 
@@ -209,10 +435,34 @@ export default function TournamentsPage() {
                     <MapPin className="h-4 w-4 mr-2 text-green-400" />
                     <span className="truncate">{tournament.location.venue}, {tournament.location.address}</span>
                   </div>
-                  <div className="flex items-center text-gray-300">
-                    <Users className="h-4 w-4 mr-2 text-green-400" />
-                    <span>{tournament.capacity} shooters</span>
+                  <div className="flex items-center justify-between text-gray-300">
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-2 text-green-400" />
+                      <span>{tournament.capacity} shooters</span>
+                    </div>
+                    {tournament.registeredCount !== undefined && (
+                      <span className="text-xs">
+                        {tournament.registeredCount}/{tournament.capacity} registered
+                      </span>
+                    )}
                   </div>
+                  {tournament.openSquads !== undefined && (
+                    <div className="flex items-center justify-between text-gray-300">
+                      <div className="flex items-center">
+                        <Target className="h-4 w-4 mr-2 text-green-400" />
+                        <span>Squads</span>
+                      </div>
+                      <span className="text-xs">
+                        {tournament.openSquads}/{tournament.totalSquads} open
+                      </span>
+                    </div>
+                  )}
+                  {tournament.distance && (
+                    <div className="flex items-center text-gray-300">
+                      <Navigation className="h-4 w-4 mr-2 text-green-400" />
+                      <span>{formatDistance(tournament.distance)} away</span>
+                    </div>
+                  )}
                 </div>
               </CardHeader>
               

@@ -411,6 +411,55 @@ export const getTournamentStats = query({
   },
 });
 
+// Get tournaments with basic capacity info
+export const getTournamentsWithCapacity = query({
+  args: {
+    status: v.optional(v.union(
+      v.literal("draft"), 
+      v.literal("published"), 
+      v.literal("active"), 
+      v.literal("completed")
+    )),
+  },
+  handler: async (ctx, args) => {
+    let tournaments = await ctx.db.query("tournaments").collect();
+    
+    // Filter by status if specified
+    if (args.status) {
+      tournaments = tournaments.filter(tournament => tournament.status === args.status);
+    }
+    
+    // Get registration counts for each tournament
+    const tournamentsWithCapacity = await Promise.all(
+      tournaments.map(async (tournament) => {
+        const registrations = await ctx.db
+          .query("registrations")
+          .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
+          .filter((q) => q.eq(q.field("status"), "registered"))
+          .collect();
+        
+        const squads = await ctx.db
+          .query("squads")
+          .withIndex("by_tournament", (q) => q.eq("tournamentId", tournament._id))
+          .collect();
+        
+        const openSquads = squads.filter(squad => squad.status === "open").length;
+        const totalSquads = squads.length;
+        
+        return {
+          ...tournament,
+          registeredCount: registrations.length,
+          availableSpots: tournament.capacity - registrations.length,
+          openSquads,
+          totalSquads
+        };
+      })
+    );
+    
+    return tournamentsWithCapacity.sort((a, b) => a.date - b.date);
+  },
+});
+
 // Search tournaments
 export const searchTournaments = query({
   args: {
