@@ -344,6 +344,22 @@ export default function DashboardPage() {
                   </Card>
                   <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
                     <CardHeader className="pb-3">
+                      <Trophy className="h-6 w-6 text-blue-400 mb-2" />
+                      <CardTitle className="text-sm">My Badges</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <Button 
+                        variant="tactical" 
+                        size="sm" 
+                        className="w-full"
+                        onClick={() => window.location.href = "/badges"}
+                      >
+                        View Collection
+                      </Button>
+                    </CardContent>
+                  </Card>
+                  <Card className="bg-slate-800 border-slate-600 hover:border-slate-500 transition-colors">
+                    <CardHeader className="pb-3">
                       <User className="h-6 w-6 text-blue-400 mb-2" />
                       <CardTitle className="text-sm">My Profile</CardTitle>
                     </CardHeader>

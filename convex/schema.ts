@@ -400,12 +400,14 @@ export default defineSchema({
     
     verificationCode: v.string(),
     shareCount: v.number(),
-    earnedAt: v.number(),
+    createdAt: v.number(),
   })
     .index("by_shooter", ["shooterId"])
     .index("by_tournament", ["tournamentId"])
     .index("by_type", ["type"])
-    .index("by_earned_date", ["earnedAt"]),
+    .index("by_created_date", ["createdAt"])
+    .index("by_verification_code", ["verificationCode"])
+    .index("by_shooter_tournament_type", ["shooterId", "tournamentId", "type"]),
 
   // Offline sync queue
   offlineQueue: defineTable({
