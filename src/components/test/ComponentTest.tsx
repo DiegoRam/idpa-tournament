@@ -46,8 +46,8 @@ export function ComponentTest() {
             <h4 className="text-sm font-medium text-gray-300">IDPA Divisions</h4>
             <div className="flex flex-wrap gap-2">
               {IDPA_DIVISIONS.map((division) => (
-                <Badge key={division.value} variant="division" title={division.description}>
-                  {division.label}
+                <Badge key={division.code} variant="division" title={division.description}>
+                  {division.code}
                 </Badge>
               ))}
             </div>

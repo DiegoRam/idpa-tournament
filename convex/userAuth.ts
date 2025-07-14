@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query, action } from "./_generated/server";
+import { mutation, query, action, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 import { auth, signIn } from "./auth";
 
@@ -18,7 +18,7 @@ export const registerUser = action({
   },
   handler: async (ctx, args) => {
     // First, create the auth account - this will automatically create a user with minimal data
-    const result = await signIn(ctx, {
+    const result = await (signIn as any)(ctx, {
       provider: "password",
       params: {
         email: args.email,
@@ -39,7 +39,7 @@ export const registerUser = action({
 });
 
 // Internal mutation to update user role after auth creation
-export const updateUserRole = mutation({
+export const updateUserRole = internalMutation({
   args: {
     email: v.string(),
     role: v.union(

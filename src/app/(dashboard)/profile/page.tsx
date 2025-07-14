@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
@@ -20,7 +20,7 @@ import {
   Save,
   ArrowLeft
 } from "lucide-react";
-import { IDPA_DIVISIONS, IDPA_CLASSIFICATIONS } from "@/lib/utils";
+import { IDPA_DIVISIONS } from "@/lib/utils";
 import Link from "next/link";
 
 export default function ProfilePage() {
@@ -37,7 +37,7 @@ export default function ProfilePage() {
   });
 
   // Initialize form data when user loads
-  useState(() => {
+  useEffect(() => {
     if (currentUser) {
       setFormData({
         name: currentUser.name || "",
@@ -58,7 +58,7 @@ export default function ProfilePage() {
         userId: currentUser._id,
         name: formData.name,
         idpaMemberNumber: formData.idpaMemberNumber || undefined,
-        primaryDivision: formData.primaryDivision || undefined,
+        primaryDivision: (formData.primaryDivision as "SSP" | "ESP" | "CDP" | "CCP" | "REV" | "BUG" | "PCC" | "CO") || undefined,
         preferences: {
           notifications: formData.notifications,
           defaultDivision: formData.defaultDivision || undefined,
@@ -193,14 +193,14 @@ export default function ProfilePage() {
                   <div className="flex items-center space-x-2">
                     <Shield className="h-4 w-4 text-gray-400" />
                     <Badge variant="tactical" className="capitalize">
-                      {currentUser.role.replace(/([A-Z])/g, ' $1').trim()}
+                      {currentUser.role?.replace(/([A-Z])/g, ' $1').trim() || 'User'}
                     </Badge>
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="memberSince">Member Since</Label>
                   <p className="text-white p-2 bg-slate-800 rounded-md">
-                    {new Date(currentUser.createdAt).toLocaleDateString()}
+                    {currentUser.createdAt ? new Date(currentUser.createdAt).toLocaleDateString() : 'Unknown'}
                   </p>
                 </div>
               </div>
@@ -250,12 +250,12 @@ export default function ProfilePage() {
                           </SelectTrigger>
                           <SelectContent>
                             {IDPA_DIVISIONS.map((division) => (
-                              <SelectItem key={division.value} value={division.value}>
+                              <SelectItem key={division.code} value={division.code}>
                                 <div className="flex items-center space-x-2">
                                   <Badge variant="division" className="text-xs">
-                                    {division.label}
+                                    {division.code}
                                   </Badge>
-                                  <span className="text-sm">{division.description}</span>
+                                  <span className="text-sm">{division.name}</span>
                                 </div>
                               </SelectItem>
                             ))}
@@ -280,11 +280,11 @@ export default function ProfilePage() {
                     <Label>Current Classifications</Label>
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                       {IDPA_DIVISIONS.map((division) => {
-                        const classification = currentUser.classifications?.[division.value as keyof typeof currentUser.classifications];
+                        const classification = currentUser.classifications?.[division.code as keyof typeof currentUser.classifications];
                         return (
-                          <div key={division.value} className="p-3 bg-slate-800 rounded-lg text-center">
+                          <div key={division.code} className="p-3 bg-slate-800 rounded-lg text-center">
                             <Badge variant="division" className="mb-2 text-xs">
-                              {division.label}
+                              {division.code}
                             </Badge>
                             <div>
                               {classification ? (
@@ -351,12 +351,12 @@ export default function ProfilePage() {
                       </SelectTrigger>
                       <SelectContent>
                         {IDPA_DIVISIONS.map((division) => (
-                          <SelectItem key={division.value} value={division.value}>
+                          <SelectItem key={division.code} value={division.code}>
                             <div className="flex items-center space-x-2">
                               <Badge variant="division" className="text-xs">
-                                {division.label}
+                                {division.code}
                               </Badge>
-                              <span className="text-sm">{division.description}</span>
+                              <span className="text-sm">{division.name}</span>
                             </div>
                           </SelectItem>
                         ))}
@@ -396,7 +396,7 @@ export default function ProfilePage() {
                 </div>
                 <div className="text-center p-4 bg-slate-800 rounded-lg">
                   <div className="text-2xl font-bold text-purple-400">
-                    {Math.floor((Date.now() - currentUser.createdAt) / (1000 * 60 * 60 * 24))}
+                    {currentUser.createdAt ? Math.floor((Date.now() - currentUser.createdAt) / (1000 * 60 * 60 * 24)) : 0}
                   </div>
                   <p className="text-sm text-gray-400">Days as Member</p>
                 </div>

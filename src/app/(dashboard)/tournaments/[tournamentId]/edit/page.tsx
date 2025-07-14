@@ -14,10 +14,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Calendar, 
-  MapPin, 
-  Users, 
-  DollarSign, 
   Target, 
   ArrowLeft,
   Save,
@@ -66,10 +62,10 @@ export default function EditTournamentPage() {
   const tournamentId = params.tournamentId as string;
   
   const tournament = useQuery(api.tournaments.getTournamentById, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tournamentId ? { tournamentId: tournamentId as any } : "skip"
   );
   const currentUser = useQuery(api.userAuth.getCurrentUser);
-  const userClub = useQuery(api.clubs.getUserClub);
   const updateTournament = useMutation(api.tournaments.updateTournament);
   
   const [isLoading, setIsLoading] = useState(false);
@@ -141,20 +137,21 @@ export default function EditTournamentPage() {
     }
   }, [currentUser, router]);
 
-  const updateTournamentData = (field: string, value: any) => {
+  const updateTournamentData = (field: string, value: unknown) => {
     setTournamentData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const updateNestedData = (path: string[], value: any) => {
+  const updateNestedData = (path: string[], value: unknown) => {
     setTournamentData(prev => {
       const newData = { ...prev };
-      let current: any = newData;
+      let current: Record<string, unknown> = newData;
       
       for (let i = 0; i < path.length - 1; i++) {
-        current = current[path[i]];
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        current = (current as any)[path[i]];
       }
       
       current[path[path.length - 1]] = value;
@@ -177,6 +174,7 @@ export default function EditTournamentPage() {
         registrationOpens: new Date(tournamentData.registrationOpens).getTime(),
         registrationCloses: new Date(tournamentData.registrationCloses).getTime(),
         location: tournamentData.location,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         divisions: tournamentData.divisions as any,
         customCategories: tournamentData.customCategories,
         entryFee: tournamentData.entryFee,
@@ -211,7 +209,7 @@ export default function EditTournamentPage() {
         <Card className="p-8 text-center">
           <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-300 mb-2">Tournament Not Found</h2>
-          <p className="text-gray-400 mb-4">The tournament you're trying to edit doesn't exist.</p>
+          <p className="text-gray-400 mb-4">The tournament you&apos;re trying to edit doesn&apos;t exist.</p>
           <Button onClick={() => router.push("/tournaments")}>
             Back to Tournaments
           </Button>

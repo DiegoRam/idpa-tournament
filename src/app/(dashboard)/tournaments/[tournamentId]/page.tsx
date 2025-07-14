@@ -5,7 +5,7 @@ import { useQuery, useMutation } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { 
   ArrowLeft, 
@@ -13,9 +13,7 @@ import {
   MapPin, 
   Users, 
   DollarSign, 
-  Clock,
   Target,
-  Building,
   Trophy,
   Eye,
   Edit,
@@ -36,6 +34,7 @@ export default function TournamentDetailPage() {
   const tournamentId = params.tournamentId as string;
   
   const tournament = useQuery(api.tournaments.getTournamentById, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tournamentId ? { tournamentId: tournamentId as any } : "skip"
   );
   
@@ -79,7 +78,7 @@ export default function TournamentDetailPage() {
         <Card className="p-8 text-center">
           <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-gray-300 mb-2">Tournament Not Found</h2>
-          <p className="text-gray-400 mb-4">The tournament you're looking for doesn't exist or has been removed.</p>
+          <p className="text-gray-400 mb-4">The tournament you&apos;re looking for doesn&apos;t exist or has been removed.</p>
           <Button onClick={() => router.push("/tournaments")}>
             Back to Tournaments
           </Button>
@@ -321,7 +320,7 @@ export default function TournamentDetailPage() {
                     </p>
                     {canPublish && (
                       <p className="text-gray-500 text-xs">
-                        Click "Publish Tournament" to open registration
+                        Click &quot;Publish Tournament&quot; to open registration
                       </p>
                     )}
                   </div>

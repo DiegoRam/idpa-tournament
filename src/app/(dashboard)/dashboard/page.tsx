@@ -81,8 +81,8 @@ export default function DashboardPage() {
     );
   }
 
-  const roleConfig = ROLE_CONFIG[currentUser.role];
-  const RoleIcon = roleConfig.icon;
+  const roleConfig = ROLE_CONFIG[currentUser.role as keyof typeof ROLE_CONFIG];
+  const RoleIcon = roleConfig?.icon || Target;
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -98,10 +98,10 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center space-x-2">
-                <RoleIcon className={`h-5 w-5 ${roleConfig.color}`} />
+                <RoleIcon className={`h-5 w-5 ${roleConfig?.color || 'text-gray-400'}`} />
                 <span className="text-gray-300">{currentUser.name}</span>
                 <Badge variant="tactical" className="capitalize">
-                  {currentUser.role.replace(/([A-Z])/g, ' $1').trim()}
+                  {currentUser.role?.replace(/([A-Z])/g, ' $1').trim() || 'User'}
                 </Badge>
               </div>
               <Button
@@ -127,7 +127,7 @@ export default function DashboardPage() {
               Welcome back, {currentUser.name}!
             </h2>
             <p className="text-gray-400">
-              You&apos;re signed in as a {currentUser.role.replace(/([A-Z])/g, ' $1').toLowerCase()}
+              You&apos;re signed in as a {currentUser.role?.replace(/([A-Z])/g, ' $1').toLowerCase() || 'user'}
             </p>
           </div>
 
@@ -139,7 +139,7 @@ export default function DashboardPage() {
                 <h3 className="text-xl font-semibold text-white">
                   {currentUser.role === "clubOwner" ? "Club Owner" : 
                    currentUser.role === "securityOfficer" ? "Security Officer" :
-                   currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)} Dashboard
+                   currentUser.role ? (currentUser.role.charAt(0).toUpperCase() + currentUser.role.slice(1)) : "User"} Dashboard
                 </h3>
                 <p className="text-gray-400">
                   {currentUser.role === "admin" && "Manage the entire IDPA tournament system"}
@@ -373,7 +373,7 @@ export default function DashboardPage() {
                 <div>
                   <Label className="text-gray-400">Role</Label>
                   <p className="text-white capitalize">
-                    {currentUser.role.replace(/([A-Z])/g, ' $1').trim()}
+                    {currentUser.role?.replace(/([A-Z])/g, ' $1').trim() || 'User'}
                   </p>
                 </div>
                 {currentUser.idpaMemberNumber && (

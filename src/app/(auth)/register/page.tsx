@@ -8,10 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { Target, User, Mail, Lock, Users, Building, Shield, Crosshair } from "lucide-react";
-import { IDPA_DIVISIONS } from "@/lib/utils";
 import Link from "next/link";
 
 const USER_ROLES = [
@@ -236,7 +233,7 @@ export default function RegisterPage() {
               <div className="p-4 bg-slate-800 rounded-lg">
                 <h4 className="font-medium text-green-400 mb-2">Role Information</h4>
                 <p className="text-sm text-gray-300">
-                  As a <strong>{selectedRoleInfo.label}</strong>, you'll be able to {selectedRoleInfo.description.toLowerCase()}.
+                  As a <strong>{selectedRoleInfo.label}</strong>, you&apos;ll be able to {selectedRoleInfo.description.toLowerCase()}.
                 </p>
                 {(selectedRole === "shooter" || selectedRole === "securityOfficer") && (
                   <p className="text-xs text-gray-400 mt-2">

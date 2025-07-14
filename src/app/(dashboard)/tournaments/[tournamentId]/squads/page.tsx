@@ -1,34 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { useQuery, useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { useParams, useRouter } from "next/navigation";
 import { api } from "@/lib/convex";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { 
   ArrowLeft, 
-  Users, 
-  Clock,
   Target,
-  Shield,
-  Edit,
-  UserPlus,
-  Settings,
-  Eye,
-  AlertCircle
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 import SquadList from "@/components/squads/SquadList";
 import SOAssignmentModal from "@/components/squads/SOAssignmentModal";
 import SquadEditModal from "@/components/squads/SquadEditModal";
 
-const SQUAD_STATUS_COLORS = {
-  open: "bg-green-500",
-  full: "bg-yellow-500",
-  closed: "bg-red-500"
-};
 
 export default function SquadManagementPage() {
   const params = useParams();
@@ -36,10 +22,12 @@ export default function SquadManagementPage() {
   const tournamentId = params.tournamentId as string;
   
   const tournament = useQuery(api.tournaments.getTournamentById, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tournamentId ? { tournamentId: tournamentId as any } : "skip"
   );
   
   const squads = useQuery(api.squads.getSquadsByTournamentWithDetails, 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     tournamentId ? { tournamentId: tournamentId as any } : "skip"
   );
   

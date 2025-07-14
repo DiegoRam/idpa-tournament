@@ -1,21 +1,9 @@
 import {
-  convexAuthNextjsMiddleware,
-  createRouteMatcher,
-  nextjsMiddlewareRedirect,
+  convexAuthNextjsMiddleware
 } from "@convex-dev/auth/nextjs/server";
 
-// Define route matchers
-const isAuthPage = createRouteMatcher(["/login", "/register"]);
-const isPublicRoute = createRouteMatcher(["/", "/test", "/debug"]);
-const isProtectedRoute = createRouteMatcher([
-  "/dashboard(.*)",
-  "/profile(.*)",
-  "/admin(.*)",
-  "/tournaments(.*)",
-  "/scoring(.*)"
-]);
 
-export default convexAuthNextjsMiddleware(async (request, { convexAuth }) => {
+export default convexAuthNextjsMiddleware(async () => {
   // Let all requests pass through
   // Authentication protection is handled by:
   // 1. Dashboard layout for protected routes

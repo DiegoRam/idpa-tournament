@@ -1,29 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useAction, useMutation } from "convex/react";
+import { useAction } from "convex/react";
 import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { 
   Target, 
-  User,
-  Mail,
+  ArrowLeft,
   Users,
   Building,
   Shield,
-  Crosshair,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-  ArrowLeft
+  Crosshair
 } from "lucide-react";
-import { IDPA_DIVISIONS } from "@/lib/utils";
 import Link from "next/link";
 
 const TEST_USERS = [
@@ -103,7 +93,6 @@ export default function AuthTestPage() {
   const registerUser = useAction(api.userAuth.registerUser);
   const [isCreatingUsers, setIsCreatingUsers] = useState(false);
   const [testResults, setTestResults] = useState<TestResult[]>([]);
-  const [createdUsers, setCreatedUsers] = useState<string[]>([]);
 
   const addTestResult = (role: string, test: string, status: "pass" | "fail" | "pending", message?: string) => {
     setTestResults(prev => [
@@ -125,19 +114,16 @@ export default function AuthTestPage() {
           email: user.email,
           password: user.password,
           name: user.name,
-          role: user.role as any,
-          idpaMemberNumber: user.idpaMemberNumber,
-          primaryDivision: user.primaryDivision as any,
+          role: user.role as "admin" | "clubOwner" | "securityOfficer" | "shooter"
         });
 
         addTestResult(user.role, "User Creation", "pass", `✅ Created ${user.name}`);
         created.push(user.email);
-      } catch (error: any) {
-        addTestResult(user.role, "User Creation", "fail", `❌ Failed: ${error.message}`);
+      } catch (error: unknown) {
+        addTestResult(user.role, "User Creation", "fail", `❌ Failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
 
-    setCreatedUsers(created);
     setIsCreatingUsers(false);
   };
 
@@ -149,13 +135,6 @@ export default function AuthTestPage() {
     }
   };
 
-  const getTestStatusIcon = (status: "pass" | "fail" | "pending") => {
-    switch (status) {
-      case "pass": return CheckCircle;
-      case "fail": return XCircle;
-      case "pending": return AlertCircle;
-    }
-  };
 
   return (
     <div className="min-h-screen bg-slate-950">
@@ -235,7 +214,6 @@ export default function AuthTestPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   {TEST_USERS.map((user) => {
                     const Icon = user.icon;
-                    const userCreated = createdUsers.includes(user.email);
                     const creationResult = testResults.find(r => r.role === user.role && r.test === "User Creation");
                     
                     return (

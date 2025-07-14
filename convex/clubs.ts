@@ -3,7 +3,7 @@ import { mutation, query, action } from "./_generated/server";
 import { api } from "./_generated/api";
 
 // Create a new IDPA club (action that gets current user)
-export const createClubWithCurrentUser = action({
+export const createClubWithCurrentUser: ReturnType<typeof action> = action({
   args: {
     name: v.string(),
     location: v.object({
@@ -400,14 +400,9 @@ export const getUserClub = query({
       return null;
     }
 
-    const user = await ctx.db.get(authAccount.userId as any);
+    const user = await ctx.db.get(authAccount.userId);
     if (!user) {
       return null;
-    }
-
-    // If user has a clubId, get the club
-    if (user.clubId) {
-      return await ctx.db.get(user.clubId);
     }
 
     // If user is a club owner, find their club

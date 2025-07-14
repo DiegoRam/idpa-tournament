@@ -16,16 +16,12 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { 
   Calendar, 
-  MapPin, 
-  Clock, 
   Users, 
-  DollarSign, 
   Target, 
   ChevronLeft, 
   ChevronRight,
   Check,
   Building,
-  Crosshair,
   Trophy,
   Settings,
   Eye,
@@ -131,20 +127,20 @@ export default function CreateTournamentPage() {
     }
   }, [userClub, tournamentData.location.venue]);
 
-  const updateTournamentData = (field: string, value: any) => {
+  const updateTournamentData = (field: string, value: unknown) => {
     setTournamentData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const updateNestedData = (path: string[], value: any) => {
+  const updateNestedData = (path: string[], value: unknown) => {
     setTournamentData(prev => {
       const newData = { ...prev };
-      let current: any = newData;
+      let current: Record<string, unknown> = newData;
       
       for (let i = 0; i < path.length - 1; i++) {
-        current = current[path[i]];
+        current = current[path[i]] as Record<string, unknown>;
       }
       
       current[path[path.length - 1]] = value;
@@ -197,7 +193,7 @@ export default function CreateTournamentPage() {
     }
   };
 
-  const handleSubmit = async (publishImmediate: boolean = false) => {
+  const handleSubmit = async () => {
     if (!userClub) {
       setError("Club information not found");
       return;
@@ -207,7 +203,7 @@ export default function CreateTournamentPage() {
     setError("");
 
     try {
-      const tournamentId = await createTournament({
+      await createTournament({
         name: tournamentData.name,
         clubId: userClub._id,
         date: new Date(tournamentData.date).getTime(),
@@ -215,6 +211,7 @@ export default function CreateTournamentPage() {
         registrationCloses: new Date(tournamentData.registrationCloses).getTime(),
         location: tournamentData.location,
         matchType: tournamentData.matchType,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         divisions: tournamentData.divisions as any,
         customCategories: tournamentData.customCategories,
         entryFee: tournamentData.entryFee,
@@ -671,7 +668,7 @@ export default function CreateTournamentPage() {
                 <div>• Your tournament will be saved as a draft</div>
                 <div>• You can edit details until you publish it</div>
                 <div>• Once published, shooters can register</div>
-                <div>• You'll be able to manage squads and check-ins</div>
+                <div>• You&apos;ll be able to manage squads and check-ins</div>
               </div>
             </div>
           </div>
@@ -741,7 +738,7 @@ export default function CreateTournamentPage() {
             <div className="p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
               <div className="text-sm text-blue-300">
                 <strong>📋 Your tournament will be created as a draft.</strong><br />
-                You can continue editing until you're ready to publish and open registration.
+                You can continue editing until you&apos;re ready to publish and open registration.
               </div>
             </div>
           </div>
@@ -877,7 +874,7 @@ export default function CreateTournamentPage() {
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
-                    onClick={() => handleSubmit(false)}
+                    onClick={handleSubmit}
                     disabled={isLoading}
                     className="flex items-center space-x-2"
                   >

@@ -6,7 +6,6 @@ import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
 import { Users, Building, Calendar, Target } from "lucide-react";
 import { ComponentTest } from "@/components/test/ComponentTest";
 

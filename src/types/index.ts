@@ -181,7 +181,7 @@ export interface StageElement {
   type: string;
   position: { x: number; y: number };
   rotation: number;
-  properties: any;
+  properties: Record<string, unknown>;
 }
 
 export interface Stage {

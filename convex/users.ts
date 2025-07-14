@@ -189,6 +189,7 @@ export const updateUserPreferences = mutation({
     );
 
     const updatedPreferences = {
+      notifications: true, // Default value
       ...user.preferences,
       ...filteredPreferences,
     };
@@ -221,18 +222,20 @@ export const addFriend = mutation({
     }
 
     // Check if already friends
-    if (user.friends.includes(args.friendId)) {
+    const userFriends = user.friends || [];
+    if (userFriends.includes(args.friendId)) {
       throw new Error("Already friends");
     }
 
     // Add friend to both users
     await ctx.db.patch(args.userId, {
-      friends: [...user.friends, args.friendId],
+      friends: [...userFriends, args.friendId],
       lastActive: Date.now(),
     });
 
+    const friendFriends = friend.friends || [];
     await ctx.db.patch(args.friendId, {
-      friends: [...friend.friends, args.userId],
+      friends: [...friendFriends, args.userId],
       lastActive: Date.now(),
     });
 
@@ -255,13 +258,15 @@ export const removeFriend = mutation({
     }
 
     // Remove friend from both users
+    const userFriends = user.friends || [];
     await ctx.db.patch(args.userId, {
-      friends: user.friends.filter(id => id !== args.friendId),
+      friends: userFriends.filter(id => id !== args.friendId),
       lastActive: Date.now(),
     });
 
+    const friendFriends = friend.friends || [];
     await ctx.db.patch(args.friendId, {
-      friends: friend.friends.filter(id => id !== args.userId),
+      friends: friendFriends.filter(id => id !== args.userId),
       lastActive: Date.now(),
     });
 
@@ -303,8 +308,9 @@ export const getUserFriends = query({
       throw new Error("User not found");
     }
 
+    const userFriends = user.friends || [];
     const friends = await Promise.all(
-      user.friends.map(friendId => ctx.db.get(friendId))
+      userFriends.map(friendId => ctx.db.get(friendId))
     );
 
     // Filter out any null results (deleted users)

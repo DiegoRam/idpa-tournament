@@ -48,7 +48,7 @@ export const USER_ROLES = [
   { value: "shooter", label: "Shooter", description: "Tournament competitor" },
 ] as const;
 
-export type IDPADivision = typeof IDPA_DIVISIONS[number]["value"];
+export type IDPADivision = typeof IDPA_DIVISIONS[number]["code"];
 export type IDPAClassification = typeof IDPA_CLASSIFICATIONS[number]["value"];
 export type UserRole = typeof USER_ROLES[number]["value"];
 
@@ -239,7 +239,7 @@ export function generateId(): string {
 }
 
 // Debounce utility
-export function debounce<T extends (...args: any[]) => any>(
+export function debounce<T extends (...args: unknown[]) => unknown>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {

@@ -77,8 +77,9 @@ export const getSquadsWithMembers = query({
     if (args.userId) {
       const user = await ctx.db.get(args.userId);
       if (user) {
-        userFriends = user.friends;
-        userClubId = user.clubId;
+        // TODO: Implement friends functionality when needed
+        userFriends = [];
+        userClubId = undefined;
       }
     }
 

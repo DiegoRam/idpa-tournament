@@ -18,8 +18,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { 
   Edit, 
   AlertCircle, 
-  Clock,
-  Users,
   Settings
 } from "lucide-react";
 
@@ -28,6 +26,17 @@ interface SquadEditModalProps {
   onClose: () => void;
   squadId: string;
 }
+
+// Common time slot options
+const TIME_SLOT_OPTIONS = [
+  "08:00 - 09:30",
+  "09:45 - 11:15", 
+  "11:30 - 13:00",
+  "13:15 - 14:45",
+  "15:00 - 16:30",
+  "16:45 - 18:15",
+  "Custom"
+];
 
 export default function SquadEditModal({
   isOpen,
@@ -43,6 +52,7 @@ export default function SquadEditModal({
 
   // Get squad details
   const squad = useQuery(api.squads.getSquadById, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     squadId: squadId as any
   });
 
@@ -95,6 +105,7 @@ export default function SquadEditModal({
 
     try {
       await updateSquad({
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         squadId: squadId as any,
         name: name.trim(),
         timeSlot: timeSlot.trim(),
@@ -109,22 +120,12 @@ export default function SquadEditModal({
     }
   };
 
-  // Common time slot options
-  const timeSlotOptions = [
-    "08:00 - 09:30",
-    "09:45 - 11:15", 
-    "11:30 - 13:00",
-    "13:15 - 14:45",
-    "15:00 - 16:30",
-    "16:45 - 18:15",
-    "Custom"
-  ];
 
   const [isCustomTimeSlot, setIsCustomTimeSlot] = useState(false);
 
   useEffect(() => {
     if (squad && timeSlot) {
-      setIsCustomTimeSlot(!timeSlotOptions.slice(0, -1).includes(timeSlot));
+      setIsCustomTimeSlot(!TIME_SLOT_OPTIONS.slice(0, -1).includes(timeSlot));
     }
   }, [squad, timeSlot]);
 
@@ -177,7 +178,7 @@ export default function SquadEditModal({
                   <SelectValue placeholder="Select time slot" />
                 </SelectTrigger>
                 <SelectContent>
-                  {timeSlotOptions.map(option => (
+                  {TIME_SLOT_OPTIONS.map(option => (
                     <SelectItem key={option} value={option}>
                       {option}
                     </SelectItem>
@@ -227,7 +228,7 @@ export default function SquadEditModal({
           {/* Squad Status */}
           <div className="space-y-2">
             <Label htmlFor="status">Squad Status</Label>
-            <Select value={status} onValueChange={(value: any) => setStatus(value)}>
+            <Select value={status} onValueChange={(value) => setStatus(value as "open" | "full" | "closed")}>
               <SelectTrigger className="bg-slate-800 border-slate-600">
                 <SelectValue />
               </SelectTrigger>
