@@ -9,6 +9,8 @@
   "scope": "/",
   "start_url": "/",
   "id": "idpa-tournament-manager",
+  "lang": "es",
+  "dir": "ltr",
   "icons": [
     {
       "src": "/icons/icon-72x72.png",

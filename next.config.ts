@@ -1,4 +1,7 @@
 import type { NextConfig } from "next";
+import createNextIntlPlugin from "next-intl/plugin";
+
+const withNextIntl = createNextIntlPlugin();
 
 const withPWA = require("next-pwa")({
   dest: "public",
@@ -10,6 +13,17 @@ const withPWA = require("next-pwa")({
   cacheStartUrl: true,
   dynamicStartUrl: true,
   reloadOnOnline: true,
+  fallbacks: {
+    document: "/offline.html"
+  },
+  maximumFileSizeToCacheInBytes: 5000000, // 5MB
+  exclude: [
+    /\.map$/,
+    /manifest$/,
+    /\.htaccess$/,
+    /_buildManifest\.js$/,
+    /_ssgManifest\.js$/
+  ],
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:gstatic)\.com\/.*/i,
@@ -80,4 +94,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withPWA(nextConfig);
+export default withNextIntl(withPWA(nextConfig));

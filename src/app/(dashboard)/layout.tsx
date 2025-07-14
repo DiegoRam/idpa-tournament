@@ -26,9 +26,17 @@ export default function DashboardLayout({
   // Show loading while checking authentication
   if (currentUser === undefined) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
+      <div 
+        className="min-h-screen bg-slate-950 flex items-center justify-center"
+        role="status"
+        aria-live="polite"
+        aria-label="Loading authentication status"
+      >
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"></div>
+          <div 
+            className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-400 mx-auto mb-4"
+            aria-hidden="true"
+          />
           <p className="text-gray-300">Checking authentication...</p>
         </div>
       </div>
@@ -44,7 +52,7 @@ export default function DashboardLayout({
   return (
     <>
       <ConnectionStatus />
-      <div className="fixed top-4 left-4 z-40 flex items-center gap-2">
+      <div className="fixed top-4 left-4 z-40 flex items-center gap-2" role="complementary" aria-label="Application status indicators">
         <SyncIndicator />
         <InstallButton />
       </div>
