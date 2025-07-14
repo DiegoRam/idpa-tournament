@@ -403,7 +403,7 @@ export default function TournamentsPage() {
         ) : (
           /* Tournament Grid */
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTournaments.map(tournament => (
+            {filteredTournaments.map(tournament => (
             <Card 
               key={tournament._id} 
               className="bg-slate-900 border-slate-700 hover:border-slate-600 transition-colors cursor-pointer"
@@ -531,7 +531,8 @@ export default function TournamentsPage() {
               </CardContent>
             </Card>
           ))}
-        </div>
+          </div>
+        )}
 
         {/* Empty State */}
         {filteredTournaments.length === 0 && (
