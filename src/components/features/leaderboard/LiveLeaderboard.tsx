@@ -122,6 +122,7 @@ interface LeaderboardTableProps {
     totalStages?: number;
     rank: number;
     divisionRank?: number;
+    previousRank?: number;
     dnf?: boolean;
     dq?: boolean;
   }[];
@@ -167,6 +168,7 @@ interface ShooterRankCardProps {
     totalStages?: number;
     rank: number;
     divisionRank?: number;
+    previousRank?: number;
     dnf?: boolean;
     dq?: boolean;
   };
@@ -279,7 +281,14 @@ function ShooterRankCard({ shooter, showDivision }: ShooterRankCardProps) {
                 <p className="text-xs text-gray-500">Position</p>
                 <div className="flex items-center justify-center gap-1">
                   <span className="text-sm font-medium text-gray-300">#{rank}</span>
-                  {/* TODO: Add position change indicator */}
+                  {shooter.previousRank !== undefined && shooter.previousRank !== rank && (
+                    <span className={`text-xs ${
+                      shooter.previousRank > rank ? "text-green-400" : "text-red-400"
+                    }`}>
+                      {shooter.previousRank > rank ? "↑" : "↓"}
+                      {Math.abs(shooter.previousRank - rank)}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>

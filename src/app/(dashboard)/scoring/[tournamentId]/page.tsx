@@ -28,11 +28,14 @@ export default function TournamentScoringPage() {
   const squads = useQuery(api.squads.getSquadsWithMembers, { tournamentId });
   
   // Check if user has SO permissions for this tournament
-  // For now, allow all SOs to score any tournament
-  // TODO: Check if user is assigned to any squad in this tournament
+  const userSquadAssignments = useQuery(
+    api.squads.getUserSquadAssignments,
+    currentUser ? { userId: currentUser._id, tournamentId } : "skip"
+  );
+  
   const hasAccess = currentUser && (
     currentUser.role === "admin" || 
-    currentUser.role === "securityOfficer"
+    (currentUser.role === "securityOfficer" && userSquadAssignments && userSquadAssignments.length > 0)
   );
   
   if (!hasAccess) {
@@ -293,8 +296,10 @@ function TournamentProgress({ tournamentId, stages, squads }: TournamentProgress
   //const totalShooters = registrations?.length || 0;
   const totalPossibleScores = checkedIn * stages.length;
   
-  // TODO: Add query to get total completed scores for the tournament
-  const completedScores = 0; // Placeholder
+  // Get total completed scores for the tournament
+  const completedScores = useQuery(api.scoring.getTournamentCompletedScoresCount, {
+    tournamentId,
+  }) || 0;
   
   return (
     <div className="space-y-6">

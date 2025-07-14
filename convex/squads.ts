@@ -272,6 +272,23 @@ export const getSquadsBySecurityOfficer = query({
   },
 });
 
+// Get user's squad assignments for a tournament
+export const getUserSquadAssignments = query({
+  args: { 
+    userId: v.id("users"),
+    tournamentId: v.id("tournaments"),
+  },
+  handler: async (ctx, args) => {
+    const squads = await ctx.db
+      .query("squads")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .filter((q) => q.eq(q.field("assignedSO"), args.userId))
+      .collect();
+    
+    return squads;
+  },
+});
+
 // Get available squads for registration
 export const getAvailableSquads = query({
   args: { tournamentId: v.id("tournaments") },

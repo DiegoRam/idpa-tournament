@@ -77,6 +77,7 @@ export default function CreateTournamentPage() {
   const currentUser = useQuery(api.userAuth.getCurrentUser);
   const userClub = useQuery(api.clubs.getUserClub);
   const createTournament = useMutation(api.tournaments.createTournament);
+  const publishTournament = useMutation(api.tournaments.publishTournament);
   
   const [currentStep, setCurrentStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
@@ -193,7 +194,7 @@ export default function CreateTournamentPage() {
     }
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (publishImmediate: boolean = false) => {
     if (!userClub) {
       setError("Club information not found");
       return;
@@ -203,7 +204,7 @@ export default function CreateTournamentPage() {
     setError("");
 
     try {
-      await createTournament({
+      const tournamentId = await createTournament({
         name: tournamentData.name,
         clubId: userClub._id,
         date: new Date(tournamentData.date).getTime(),
@@ -222,7 +223,10 @@ export default function CreateTournamentPage() {
         rules: tournamentData.rules || undefined,
       });
 
-      // TODO: If publishImmediate, call publishTournament mutation
+      // If publishImmediate, call publishTournament mutation
+      if (publishImmediate && tournamentId) {
+        await publishTournament({ tournamentId });
+      }
 
       router.push(`/dashboard/tournaments`);
     } catch (error: unknown) {
@@ -874,14 +878,22 @@ export default function CreateTournamentPage() {
                 <div className="flex space-x-2">
                   <Button
                     variant="outline"
-                    onClick={handleSubmit}
+                    onClick={() => handleSubmit(false)}
                     disabled={isLoading}
                     className="flex items-center space-x-2"
                   >
                     <Save className="h-4 w-4" />
                     <span>Save Draft</span>
                   </Button>
-                  {/* TODO: Add publish option when publish mutation is ready */}
+                  <Button
+                    variant="tactical"
+                    onClick={() => handleSubmit(true)}
+                    disabled={isLoading}
+                    className="flex items-center space-x-2"
+                  >
+                    <Eye className="h-4 w-4" />
+                    <span>Save & Publish</span>
+                  </Button>
                 </div>
               )}
             </div>

@@ -3,6 +3,30 @@ import { mutation, query, action, QueryCtx } from "./_generated/server";
 import { Id } from "./_generated/dataModel";
 import { api, internal } from "./_generated/api";
 
+// Get total completed scores count for a tournament
+export const getTournamentCompletedScoresCount = query({
+  args: { tournamentId: v.id("tournaments") },
+  handler: async (ctx, args) => {
+    // First get all stages for the tournament
+    const stages = await ctx.db
+      .query("stages")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+    
+    // Then count all scores for these stages
+    let totalScores = 0;
+    for (const stage of stages) {
+      const stageScores = await ctx.db
+        .query("scores")
+        .withIndex("by_stage_shooter", (q) => q.eq("stageId", stage._id))
+        .collect();
+      totalScores += stageScores.length;
+    }
+    
+    return totalScores;
+  },
+});
+
 // IDPA scoring calculation utilities
 function calculatePointsDown(hits: {
   down0: number;
