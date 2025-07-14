@@ -53,8 +53,8 @@ export default function TournamentsPage() {
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
   const [selectedClub, setSelectedClub] = useState<string>("all");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
-  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [maxDistance, setMaxDistance] = useState<number | null>(null);
+  const [userLocation, setUserLocation] = useState<{lat: number, lng: number} | undefined>(undefined);
+  const [maxDistance, setMaxDistance] = useState<number | undefined>(undefined);
   const [locationLoading, setLocationLoading] = useState(false);
   const router = useRouter();
 
@@ -186,8 +186,8 @@ export default function TournamentsPage() {
   };
 
   const clearLocationFilter = () => {
-    setUserLocation(null);
-    setMaxDistance(null);
+    setUserLocation(undefined);
+    setMaxDistance(undefined);
   };
 
   const formatDistance = (distance: number): string => {
