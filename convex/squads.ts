@@ -12,6 +12,36 @@ export const getSquadsByTournament = query({
   },
 });
 
+// Get squads for a tournament with detailed information including SO names
+export const getSquadsByTournamentWithDetails = query({
+  args: { tournamentId: v.id("tournaments") },
+  handler: async (ctx, args) => {
+    const squads = await ctx.db
+      .query("squads")
+      .withIndex("by_tournament", (q) => q.eq("tournamentId", args.tournamentId))
+      .collect();
+
+    // Get detailed squad information including SO names
+    const squadsWithDetails = await Promise.all(
+      squads.map(async (squad) => {
+        let assignedSOName: string | undefined;
+        
+        if (squad.assignedSO) {
+          const so = await ctx.db.get(squad.assignedSO);
+          assignedSOName = so?.name;
+        }
+
+        return {
+          ...squad,
+          assignedSOName
+        };
+      })
+    );
+
+    return squadsWithDetails.sort((a, b) => a.name.localeCompare(b.name));
+  },
+});
+
 // Get squad by ID
 export const getSquadById = query({
   args: { squadId: v.id("squads") },

@@ -18,7 +18,8 @@ import {
   Building,
   Trophy,
   Eye,
-  Edit
+  Edit,
+  Settings
 } from "lucide-react";
 import Link from "next/link";
 
@@ -166,15 +167,26 @@ export default function TournamentDetailPage() {
                 )}
                 
                 {canManage && (
-                  <Button 
-                    variant="outline" 
-                    size="lg"
-                    onClick={() => router.push(`/tournaments/${tournamentId}/edit`)}
-                    className="flex items-center space-x-2"
-                  >
-                    <Edit className="h-4 w-4" />
-                    <span>Edit Tournament</span>
-                  </Button>
+                  <div className="flex space-x-3">
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      onClick={() => router.push(`/tournaments/${tournamentId}/squads`)}
+                      className="flex items-center space-x-2"
+                    >
+                      <Settings className="h-4 w-4" />
+                      <span>Manage Squads</span>
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      onClick={() => router.push(`/tournaments/${tournamentId}/edit`)}
+                      className="flex items-center space-x-2"
+                    >
+                      <Edit className="h-4 w-4" />
+                      <span>Edit Tournament</span>
+                    </Button>
+                  </div>
                 )}
               </div>
             </div>
