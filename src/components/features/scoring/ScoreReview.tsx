@@ -5,8 +5,9 @@ import { StringScore, IDPAPenalties, calculateScoreBreakdown, formatTime } from 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, Target, AlertTriangle } from "lucide-react";
+import { CheckCircle, Clock, Target, AlertTriangle, CloudOff, Wifi } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 interface ScoreReviewProps {
   shooterName: string;
@@ -38,6 +39,7 @@ export function ScoreReview({
   className,
 }: ScoreReviewProps) {
   const { rawTime, pointsDown, penaltyTime, finalTime } = calculateScoreBreakdown(strings, penalties);
+  const { isOnline } = useOfflineSync();
 
   // Count total hits for validation
   const totalHits = strings.reduce((total, string) => {
@@ -274,7 +276,8 @@ export function ScoreReview({
                 disabled={isSubmitting}
                 className="flex-1 bg-green-600 hover:bg-green-700"
               >
-                {isSubmitting ? "Submitting..." : "Confirm & Submit"}
+                {isOnline ? <Wifi className="h-4 w-4 mr-2" /> : <CloudOff className="h-4 w-4 mr-2" />}
+                {isSubmitting ? "Submitting..." : isOnline ? "Confirm & Submit" : "Save Offline"}
               </Button>
             )}
           </div>

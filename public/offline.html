@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IDPA Tournament Manager - Offline</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 500px;
+            background: rgba(42, 42, 42, 0.8);
+            border: 1px solid #404040;
+            border-radius: 12px;
+            padding: 3rem 2rem;
+            backdrop-filter: blur(10px);
+        }
+        
+        .icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 2rem;
+            background: #1a4a3a;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+        
+        h1 {
+            color: #4ade80;
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        
+        p {
+            color: #a1a1aa;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+        
+        .features {
+            background: rgba(26, 26, 26, 0.5);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            text-align: left;
+        }
+        
+        .features h3 {
+            color: #4ade80;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .features ul {
+            list-style: none;
+            space-y: 0.5rem;
+        }
+        
+        .features li {
+            color: #d4d4d8;
+            padding: 0.25rem 0;
+            position: relative;
+            padding-left: 1.5rem;
+        }
+        
+        .features li:before {
+            content: "✓";
+            color: #4ade80;
+            font-weight: bold;
+            position: absolute;
+            left: 0;
+        }
+        
+        .button {
+            background: #4ade80;
+            color: #0a0a0a;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0.5rem;
+        }
+        
+        .button:hover {
+            background: #22c55e;
+        }
+        
+        .button.secondary {
+            background: transparent;
+            color: #4ade80;
+            border: 1px solid #4ade80;
+        }
+        
+        .button.secondary:hover {
+            background: rgba(74, 222, 128, 0.1);
+        }
+        
+        .status {
+            margin-top: 2rem;
+            padding: 1rem;
+            background: rgba(234, 179, 8, 0.1);
+            border: 1px solid #eab308;
+            border-radius: 6px;
+            color: #fbbf24;
+            font-size: 0.875rem;
+        }
+        
+        @media (max-width: 640px) {
+            .container {
+                padding: 2rem 1rem;
+            }
+            
+            h1 {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="icon">🎯</div>
+        
+        <h1>You're Offline</h1>
+        
+        <p>
+            No internet connection detected. Don't worry - IDPA Tournament Manager 
+            is designed to work offline for essential tournament operations.
+        </p>
+        
+        <div class="features">
+            <h3>Available Offline:</h3>
+            <ul>
+                <li>Score entry and management</li>
+                <li>Tournament data viewing</li>
+                <li>Squad member information</li>
+                <li>Stage diagrams and details</li>
+                <li>Local score storage</li>
+            </ul>
+        </div>
+        
+        <p>
+            Your scores and actions will be automatically synced when you reconnect to the internet.
+        </p>
+        
+        <div>
+            <button class="button" onclick="goHome()">
+                Continue Offline
+            </button>
+            <button class="button secondary" onclick="checkConnection()">
+                Check Connection
+            </button>
+        </div>
+        
+        <div class="status" id="status">
+            <strong>Status:</strong> <span id="connection-status">Checking connection...</span>
+        </div>
+    </div>
+
+    <script>
+        function goHome() {
+            window.location.href = '/';
+        }
+        
+        function checkConnection() {
+            const status = document.getElementById('connection-status');
+            status.textContent = 'Checking...';
+            
+            // Try to fetch a small resource
+            fetch('/manifest.json', { 
+                cache: 'no-cache',
+                mode: 'no-cors'
+            })
+            .then(() => {
+                status.textContent = 'Connection restored! Redirecting...';
+                status.style.color = '#4ade80';
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            })
+            .catch(() => {
+                status.textContent = 'Still offline. Continue working offline or try again later.';
+                status.style.color = '#fbbf24';
+            });
+        }
+        
+        // Auto-check connection status
+        function updateConnectionStatus() {
+            const status = document.getElementById('connection-status');
+            
+            if (navigator.onLine) {
+                // Double-check with actual network request
+                fetch('/manifest.json', { 
+                    cache: 'no-cache',
+                    mode: 'no-cors'
+                })
+                .then(() => {
+                    status.textContent = 'Connection restored!';
+                    status.style.color = '#4ade80';
+                })
+                .catch(() => {
+                    status.textContent = 'No internet access';
+                    status.style.color = '#fbbf24';
+                });
+            } else {
+                status.textContent = 'No internet access';
+                status.style.color = '#fbbf24';
+            }
+        }
+        
+        // Listen for online/offline events
+        window.addEventListener('online', updateConnectionStatus);
+        window.addEventListener('offline', updateConnectionStatus);
+        
+        // Initial status check
+        updateConnectionStatus();
+        
+        // Periodic connection check
+        setInterval(updateConnectionStatus, 30000); // Check every 30 seconds
+    </script>
+</body>
+</html>

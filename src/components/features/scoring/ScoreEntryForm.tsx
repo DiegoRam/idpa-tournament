@@ -5,6 +5,8 @@ import { useQuery, useMutation } from "convex/react";
 import { api } from "@/lib/convex";
 import { Id } from "@/lib/convex";
 import { StringScore, IDPAPenalties, HitZone } from "@/types/scoring";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { useOfflineStorage } from "@/hooks/useOfflineStorage";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,7 +24,10 @@ import {
   ChevronLeft, 
   ChevronRight,
   Loader2,
-  Save
+  Save,
+  Wifi,
+  WifiOff,
+  CloudOff
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -66,6 +71,10 @@ export function ScoreEntryForm({
   
   // Current user (scorer)
   const currentUser = useQuery(api.userAuth.getCurrentUser);
+  
+  // Offline capabilities
+  const { isOnline, executeOfflineAction, pendingCount } = useOfflineSync();
+  const { storeOfflineScore, isInitialized: storageInitialized } = useOfflineStorage();
   
   // Form state
   const [currentString, setCurrentString] = useState(0);
@@ -174,13 +183,24 @@ export function ScoreEntryForm({
         dq,
       };
       
+      // Use offline-capable execution
       if (existingScore) {
-        await updateScore({
-          scoreId: existingScore._id,
-          ...scoreData,
-        });
+        await executeOfflineAction(
+          "updateScore",
+          { scoreId: existingScore._id, ...scoreData },
+          () => updateScore({ scoreId: existingScore._id, ...scoreData })
+        );
       } else {
-        await submitScore(scoreData);
+        await executeOfflineAction(
+          "submitScore",
+          scoreData,
+          () => submitScore(scoreData)
+        );
+      }
+      
+      // Store locally for offline reference if storage is available
+      if (storageInitialized && !isOnline) {
+        await storeOfflineScore(scoreData);
       }
       
       onComplete?.();
@@ -218,9 +238,31 @@ export function ScoreEntryForm({
       {/* Header */}
       <Card className="bg-gray-900/50 border-gray-800">
         <CardHeader>
-          <CardTitle className="text-xl text-green-400">
-            Score Entry - {stage.name}
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-xl text-green-400">
+              Score Entry - {stage.name}
+            </CardTitle>
+            {/* Connection Status */}
+            <div className="flex items-center gap-2">
+              {isOnline ? (
+                <div className="flex items-center gap-1 text-green-400 text-sm">
+                  <Wifi className="h-4 w-4" />
+                  <span>Online</span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-1 text-yellow-400 text-sm">
+                  <WifiOff className="h-4 w-4" />
+                  <span>Offline</span>
+                </div>
+              )}
+              {pendingCount > 0 && (
+                <div className="flex items-center gap-1 text-blue-400 text-sm">
+                  <CloudOff className="h-4 w-4" />
+                  <span>{pendingCount} pending</span>
+                </div>
+              )}
+            </div>
+          </div>
           <div className="text-sm text-gray-400 space-y-1">
             <p>
               <span className="font-medium">Shooter:</span> {shooter.name} ({registration.division}/{registration.classification})
@@ -228,6 +270,11 @@ export function ScoreEntryForm({
             <p>
               <span className="font-medium">Stage:</span> {stage.strings} strings, {stage.roundCount} rounds per string
             </p>
+            {!isOnline && (
+              <p className="text-yellow-400 text-xs">
+                You&apos;re offline. Scores will be synced when connection is restored.
+              </p>
+            )}
           </div>
         </CardHeader>
       </Card>
@@ -402,8 +449,8 @@ export function ScoreEntryForm({
             variant="outline"
             className="flex-1"
           >
-            <Save className="h-4 w-4 mr-2" />
-            {isSubmitting ? "Saving..." : "Save Draft"}
+            {isOnline ? <Save className="h-4 w-4 mr-2" /> : <CloudOff className="h-4 w-4 mr-2" />}
+            {isSubmitting ? "Saving..." : isOnline ? "Save Draft" : "Save Offline"}
           </Button>
         )}
       </div>
