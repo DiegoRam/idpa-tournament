@@ -4,6 +4,9 @@ import { useQuery } from "convex/react";
 import { api } from "@/lib/convex";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import { ConnectionStatus } from "@/components/ui/ConnectionStatus";
+import { SyncIndicator } from "@/components/ui/SyncQueue";
+import { InstallButton } from "@/components/ui/InstallPrompt";
 
 export default function DashboardLayout({
   children,
@@ -38,5 +41,14 @@ export default function DashboardLayout({
   }
 
   // User is authenticated, show the dashboard content
-  return <>{children}</>;
+  return (
+    <>
+      <ConnectionStatus />
+      <div className="fixed top-4 left-4 z-40 flex items-center gap-2">
+        <SyncIndicator />
+        <InstallButton />
+      </div>
+      {children}
+    </>
+  );
 }

@@ -217,16 +217,17 @@ The application uses Convex's real-time document database with these key collect
 - **Type Safety**: Complete TypeScript interfaces for all IDPA data
 - **Test Suite**: Comprehensive testing at `/test` route
 
-### 🚧 Phase 2: Core Features (NEXT)
-- Squad selection interface with member visibility
-- IDPA scoring interface for Security Officers
-- Tournament calendar with advanced filtering
-- Real-time leaderboards by division/classification
-- User authentication and profile management
+### ✅ Phase 2: Core Features (COMPLETED)
+- **Squad Selection**: Complete interface with member visibility
+- **Digital Badges**: Auto-generated achievement badges with social sharing
+- **Tournament Management**: Full tournament lifecycle with calendar
+- **Real-time Setup**: Live updates and synchronization
+- **PWA Support**: Progressive Web App with offline capabilities
+- **Visual Stage Designer**: Professional IDPA stage layout tool
 
-### 📋 Phase 3: Advanced Features (PLANNED)
-- Digital badge generation and social sharing
-- Visual stage designer tool
+### 🚧 Phase 3: Advanced Features (NEXT)
+- IDPA scoring interface for Security Officers
+- Real-time leaderboards by division/classification
 - Offline scoring with sync
 - Custom award categories
 - Spectator mode with QR codes

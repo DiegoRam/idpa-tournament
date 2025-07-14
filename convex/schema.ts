@@ -425,8 +425,11 @@ export default defineSchema({
     ),
     
     error: v.optional(v.string()),
+    completedAt: v.optional(v.number()),
+    lastError: v.optional(v.string()),
   })
     .index("by_user", ["userId"])
     .index("by_status", ["status"])
-    .index("by_created", ["createdAt"]),
+    .index("by_created", ["createdAt"])
+    .index("by_user_status", ["userId", "status"]),
 });

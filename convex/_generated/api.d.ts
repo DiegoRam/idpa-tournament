@@ -17,6 +17,7 @@ import type * as auth from "../auth.js";
 import type * as badges from "../badges.js";
 import type * as clubs from "../clubs.js";
 import type * as http from "../http.js";
+import type * as offlineSync from "../offlineSync.js";
 import type * as registrations from "../registrations.js";
 import type * as scoring from "../scoring.js";
 import type * as squads from "../squads.js";
@@ -38,6 +39,7 @@ declare const fullApi: ApiFromModules<{
   badges: typeof badges;
   clubs: typeof clubs;
   http: typeof http;
+  offlineSync: typeof offlineSync;
   registrations: typeof registrations;
   scoring: typeof scoring;
   squads: typeof squads;

@@ -19,7 +19,8 @@ import {
   Trash2,
   AlertCircle,
   Save,
-  X
+  X,
+  Palette
 } from "lucide-react";
 
 export default function StageManagementPage() {
@@ -124,7 +125,10 @@ export default function StageManagementPage() {
             {stages.map((stage) => (
               <StageCard
                 key={stage._id}
-                stage={stage}
+                stage={{
+                  ...stage,
+                  tournamentId,
+                }}
                 isEditing={editingStage === stage._id}
                 onEdit={() => setEditingStage(stage._id)}
                 onCancelEdit={() => setEditingStage(null)}
@@ -149,6 +153,7 @@ export default function StageManagementPage() {
 interface StageCardProps {
   stage: {
     _id: Id<"stages">;
+    tournamentId: Id<"tournaments">;
     stageNumber: number;
     name: string;
     description: string;
@@ -259,6 +264,15 @@ function StageCard({ stage, isEditing, onEdit, onCancelEdit, onDelete }: StageCa
             </p>
           </div>
           <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => window.location.href = `/scoring/${stage.tournamentId}/stages/${stage._id}/design`}
+              className="text-blue-400 hover:text-blue-300"
+              title="Visual Designer"
+            >
+              <Palette className="h-4 w-4" />
+            </Button>
             <Button
               size="sm"
               variant="ghost"
