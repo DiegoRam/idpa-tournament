@@ -432,4 +432,77 @@ export default defineSchema({
     .index("by_status", ["status"])
     .index("by_created", ["createdAt"])
     .index("by_user_status", ["userId", "status"]),
+
+  // Push notification subscriptions
+  pushSubscriptions: defineTable({
+    userId: v.id("users"),
+    endpoint: v.string(),
+    keys: v.object({
+      p256dh: v.string(),
+      auth: v.string(),
+    }),
+    isActive: v.boolean(),
+    userAgent: v.optional(v.string()),
+    createdAt: v.number(),
+    lastUsed: v.number(),
+  })
+    .index("by_user", ["userId"])
+    .index("by_active", ["isActive"])
+    .index("by_endpoint", ["endpoint"]),
+
+  // In-app notifications
+  notifications: defineTable({
+    userId: v.id("users"),
+    type: v.union(
+      v.literal("tournament_update"),
+      v.literal("score_posted"),
+      v.literal("badge_earned"),
+      v.literal("conflict_alert"),
+      v.literal("registration_reminder"),
+      v.literal("stage_completed"),
+      v.literal("final_results"),
+      v.literal("system_update")
+    ),
+    title: v.string(),
+    body: v.string(),
+    data: v.optional(v.any()),
+    isRead: v.boolean(),
+    priority: v.union(
+      v.literal("low"),
+      v.literal("normal"),
+      v.literal("high"),
+      v.literal("urgent")
+    ),
+    sentAt: v.number(),
+    readAt: v.optional(v.number()),
+    expiresAt: v.optional(v.number()),
+  })
+    .index("by_user", ["userId"])
+    .index("by_user_read", ["userId", "isRead"])
+    .index("by_type", ["type"])
+    .index("by_priority", ["priority"])
+    .index("by_sent_date", ["sentAt"]),
+
+  // Notification preferences
+  notificationPreferences: defineTable({
+    userId: v.id("users"),
+    emailNotifications: v.boolean(),
+    pushNotifications: v.boolean(),
+    preferences: v.object({
+      tournamentUpdates: v.boolean(),
+      scoreAlerts: v.boolean(),
+      badgeNotifications: v.boolean(),
+      systemUpdates: v.boolean(),
+      conflictAlerts: v.boolean(),
+      socialUpdates: v.boolean(),
+    }),
+    quietHours: v.optional(v.object({
+      enabled: v.boolean(),
+      startTime: v.string(), // "22:00"
+      endTime: v.string(),   // "08:00"
+      timezone: v.string(),
+    })),
+    updatedAt: v.number(),
+  })
+    .index("by_user", ["userId"]),
 });

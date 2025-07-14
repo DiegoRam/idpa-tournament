@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { internal } from "./_generated/api";
 
 // Create a new tournament
 export const createTournament = mutation({
@@ -293,6 +294,15 @@ export const publishTournament = mutation({
       updatedAt: now,
     });
 
+    // Trigger tournament registration open notification
+    await ctx.scheduler.runAfter(0, internal.notificationTriggers.onTournamentUpdate, {
+      tournamentId: args.tournamentId,
+      updateType: "registration_open",
+      title: "Registration Now Open",
+      message: `Registration is now open for ${tournament.name} on ${new Date(tournament.date).toLocaleDateString()}`,
+      priority: "normal",
+    });
+
     return await ctx.db.get(args.tournamentId);
   },
 });
@@ -335,6 +345,11 @@ export const completeTournament = mutation({
     await ctx.db.patch(args.tournamentId, {
       status: "completed",
       updatedAt: Date.now(),
+    });
+
+    // Trigger final results notification
+    await ctx.scheduler.runAfter(0, internal.notificationTriggers.onFinalResults, {
+      tournamentId: args.tournamentId,
     });
 
     return await ctx.db.get(args.tournamentId);
