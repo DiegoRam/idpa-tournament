@@ -169,6 +169,18 @@ export default function TournamentDetailPage() {
                   </Badge>
                 )}
                 
+                {(tournament.status === "active" || tournament.status === "completed") && (
+                  <Button 
+                    variant="outline" 
+                    size="lg"
+                    onClick={() => router.push(`/tournaments/${tournamentId}/leaderboard`)}
+                    className="flex items-center space-x-2"
+                  >
+                    <Trophy className="h-4 w-4" />
+                    <span>Live Results</span>
+                  </Button>
+                )}
+                
                 {canPublish && (
                   <Button 
                     variant="tactical" 
