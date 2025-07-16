@@ -73,6 +73,33 @@ export default function TournamentRegistrationPage() {
   // Mutations
   const registerForTournament = useMutation(api.registrations.registerForTournament);
 
+  // Check registration window
+  const now = Date.now();
+  const registrationNotOpen = tournament && now < tournament.registrationOpens;
+  const registrationClosed = tournament && now > tournament.registrationCloses;
+  const canRegister = tournament && !registrationNotOpen && !registrationClosed && tournament.status === "published";
+
+  // Format dates for display
+  const formatDateTime = (timestamp: number) => {
+    const date = new Date(timestamp);
+    return {
+      date: date.toLocaleDateString("en-US", { weekday: "short", year: "numeric", month: "short", day: "numeric" }),
+      time: date.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" })
+    };
+  };
+
+  // Calculate time until registration opens/closes
+  const getTimeUntil = (timestamp: number) => {
+    const diff = timestamp - now;
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) return `${days} day${days > 1 ? 's' : ''}`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? 's' : ''}`;
+    return `${minutes} minute${minutes > 1 ? 's' : ''}`;
+  };
+
   // Set default division and classification from user profile
   React.useEffect(() => {
     if (currentUser) {
@@ -89,6 +116,17 @@ export default function TournamentRegistrationPage() {
   }, [currentUser, selectedDivision]);
 
   const handleJoinSquad = (squadId: string) => {
+    if (!canRegister) {
+      if (registrationNotOpen) {
+        setError(`Registration opens on ${formatDateTime(tournament.registrationOpens).date} at ${formatDateTime(tournament.registrationOpens).time}`);
+      } else if (registrationClosed) {
+        setError(`Registration closed on ${formatDateTime(tournament.registrationCloses).date} at ${formatDateTime(tournament.registrationCloses).time}`);
+      } else {
+        setError("Tournament is not open for registration");
+      }
+      return;
+    }
+    
     if (!selectedDivision || !selectedClassification) {
       setError("Please select your division and classification first");
       return;
@@ -181,9 +219,21 @@ export default function TournamentRegistrationPage() {
             <h1 className="text-3xl font-bold text-green-400 mb-2">Register for Tournament</h1>
             <h2 className="text-xl text-gray-300">{tournament.name}</h2>
           </div>
-          <Badge variant="outline" className="text-green-400 border-green-400">
-            Registration Open
-          </Badge>
+          {registrationNotOpen && (
+            <Badge variant="outline" className="text-yellow-400 border-yellow-400">
+              Opens in {getTimeUntil(tournament.registrationOpens)}
+            </Badge>
+          )}
+          {registrationClosed && (
+            <Badge variant="outline" className="text-red-400 border-red-400">
+              Registration Closed
+            </Badge>
+          )}
+          {canRegister && (
+            <Badge variant="outline" className="text-green-400 border-green-400">
+              Registration Open
+            </Badge>
+          )}
         </div>
       </div>
 
@@ -222,8 +272,53 @@ export default function TournamentRegistrationPage() {
               </div>
             </div>
           </div>
+          
+          {/* Registration Window Info */}
+          <div className="mt-6 pt-6 border-t border-gray-800">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="flex items-center gap-3">
+                <Info className="h-5 w-5 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-400">Registration Opens</p>
+                  <p className="font-medium text-gray-100">
+                    {formatDateTime(tournament.registrationOpens).date} at {formatDateTime(tournament.registrationOpens).time}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <Info className="h-5 w-5 text-gray-400" />
+                <div>
+                  <p className="text-sm text-gray-400">Registration Closes</p>
+                  <p className="font-medium text-gray-100">
+                    {formatDateTime(tournament.registrationCloses).date} at {formatDateTime(tournament.registrationCloses).time}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Registration Window Alert */}
+      {registrationNotOpen && (
+        <Alert className="mb-6 border-yellow-400/50 bg-yellow-400/10">
+          <Info className="h-4 w-4 text-yellow-400" />
+          <AlertDescription className="text-gray-100">
+            Registration will open in <strong>{getTimeUntil(tournament.registrationOpens)}</strong> on{" "}
+            {formatDateTime(tournament.registrationOpens).date} at {formatDateTime(tournament.registrationOpens).time}
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      {registrationClosed && (
+        <Alert className="mb-6 border-red-400/50 bg-red-400/10">
+          <AlertCircle className="h-4 w-4 text-red-400" />
+          <AlertDescription className="text-gray-100">
+            Registration closed on {formatDateTime(tournament.registrationCloses).date} at{" "}
+            {formatDateTime(tournament.registrationCloses).time}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Division & Classification Selection */}
       <Card className="bg-gray-900/50 border-gray-800 mb-6">
@@ -315,7 +410,16 @@ export default function TournamentRegistrationPage() {
           <CardTitle className="text-green-400">Select Your Squad</CardTitle>
         </CardHeader>
         <CardContent>
-          {(!selectedDivision || !selectedClassification) ? (
+          {!canRegister ? (
+            <Alert className="bg-gray-900/50 border-gray-700">
+              <AlertCircle className="h-4 w-4 text-gray-400" />
+              <AlertDescription className="text-gray-300">
+                Squad selection is not available at this time.{" "}
+                {registrationNotOpen && "Registration has not opened yet."}
+                {registrationClosed && "Registration has closed."}
+              </AlertDescription>
+            </Alert>
+          ) : (!selectedDivision || !selectedClassification) ? (
             <Alert className="bg-yellow-900/20 border-yellow-800">
               <AlertCircle className="h-4 w-4 text-yellow-400" />
               <AlertDescription className="text-yellow-300">

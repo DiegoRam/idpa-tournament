@@ -7,6 +7,7 @@ import { api } from "@/lib/convex";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Label } from "@/components/ui/label";
 import { 
   ArrowLeft, 
   Calendar, 
@@ -46,6 +47,10 @@ export default function TournamentDetailPage() {
       userId: currentUser._id,
       tournamentId: tournament._id
     } : "skip"
+  );
+  
+  const stages = useQuery(api.stages.getStagesByTournament,
+    tournament ? { tournamentId: tournament._id } : "skip"
   );
   
   const [isPublishing, setIsPublishing] = useState(false);
@@ -195,7 +200,16 @@ export default function TournamentDetailPage() {
                 )}
                 
                 {canManage && (
-                  <div className="flex space-x-3">
+                  <div className="flex flex-wrap gap-3">
+                    <Button 
+                      variant="outline" 
+                      size="lg"
+                      onClick={() => router.push(`/scoring/${tournamentId}/stages`)}
+                      className="flex items-center space-x-2"
+                    >
+                      <Target className="h-4 w-4" />
+                      <span>Manage Stages</span>
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="lg"
@@ -383,6 +397,60 @@ export default function TournamentDetailPage() {
               </CardContent>
             </Card>
 
+            {/* Stages */}
+            <Card className="bg-slate-900 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-green-400 flex items-center">
+                  <Target className="h-5 w-5 mr-2" />
+                  Stages
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {stages && stages.length > 0 ? (
+                  <>
+                    <div className="flex justify-between items-center">
+                      <Label className="text-gray-400">Total Stages</Label>
+                      <span className="text-white font-semibold">{stages.length}</span>
+                    </div>
+                    <div className="space-y-2">
+                      {stages.slice(0, 5).map((stage) => (
+                        <div key={stage._id} className="flex justify-between items-center">
+                          <span className="text-gray-300 text-sm">
+                            Stage {stage.stageNumber}: {stage.name}
+                          </span>
+                          {stage.diagram && (
+                            <Badge variant="outline" className="text-green-400 border-green-400 text-xs">
+                              Designed
+                            </Badge>
+                          )}
+                        </div>
+                      ))}
+                      {stages.length > 5 && (
+                        <p className="text-gray-500 text-sm italic">
+                          and {stages.length - 5} more...
+                        </p>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="text-center py-4">
+                    <Target className="h-8 w-8 text-gray-600 mx-auto mb-2" />
+                    <p className="text-gray-400 text-sm">No stages created yet</p>
+                    {canManage && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-2"
+                        onClick={() => router.push(`/scoring/${tournamentId}/stages`)}
+                      >
+                        Create Stages
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
             {/* Custom Categories */}
             {tournament.customCategories && tournament.customCategories.length > 0 && (
               <Card className="bg-slate-900 border-slate-700">
@@ -411,8 +479,4 @@ export default function TournamentDetailPage() {
       </div>
     </div>
   );
-}
-
-function Label({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={`text-sm font-medium ${className}`}>{children}</div>;
 }

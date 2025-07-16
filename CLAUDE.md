@@ -62,13 +62,14 @@ src/
 ├── app/                    # Next.js App Router pages
 │   ├── (auth)/            # Authentication routes group
 │   ├── (dashboard)/       # Dashboard routes group  
-│   ├── layout.tsx         # Root layout
+│   ├── layout.tsx         # Root layout (no i18n)
 │   └── page.tsx           # Home page
 ├── components/            # React components
 │   ├── features/          # Feature-specific components
 │   │   ├── badges/        # Digital achievement badges
 │   │   ├── scoring/       # IDPA scoring system
 │   │   ├── squads/        # Squad management
+│   │   ├── stages/        # Stage designer components
 │   │   └── tournaments/   # Tournament management
 │   └── layouts/           # Layout components
 ├── lib/                   # Utility libraries
@@ -205,7 +206,7 @@ The application uses Convex's real-time document database with these key collect
 - Real-time score synchronization
 - IDPA rule compliance
 - Mobile-first design for outdoor use
-- Multi-language support (Spanish primary, English secondary)
+- English-only interface (internationalization removed for simplicity)
 
 ## Implementation Status
 
@@ -226,13 +227,18 @@ The application uses Convex's real-time document database with these key collect
 
 ### ✅ Phase 3: Advanced Features (COMPLETED)
 - **Digital Badges**: Auto-generated achievement badges with social sharing
-- **Visual Stage Designer**: Professional IDPA stage layout tool
+- **Visual Stage Designer**: Professional IDPA stage layout tool with drag-and-drop functionality
+  - Full element library (targets, cover, walls, fault lines, start positions)
+  - Grid-based placement with snap-to-grid
+  - Element selection and manipulation (move, rotate, duplicate, delete)
+  - Measurement tool for accurate stage dimensions
+  - Save/load stage diagrams to Convex database
 - **Offline Scoring**: Full offline capability with automatic sync
 - **Custom Categories**: Ladies, Veterans, Law Enforcement awards
 - **Spectator Mode**: Real-time following via QR codes
 
 ### ✅ Phase 4: Production Polish (COMPLETED)
-- **Internationalization**: Spanish/English support with complete IDPA translations
+- **Internationalization**: Removed per user request - app is now English-only for simplicity
 - **Accessibility**: WCAG 2.1 AA compliance with screen reader support
 - **PWA Features**: Offline support, install prompts, service workers
 - **Security**: Hardened with CSP, security headers, audit logging

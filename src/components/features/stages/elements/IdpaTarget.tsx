@@ -7,6 +7,7 @@ interface IdpaTargetProps {
   isSelected: boolean;
   onSelect: () => void;
   onChange: (element: IdpaTargetElement) => void;
+  draggable?: boolean;
 }
 
 export function IdpaTarget({ element, isSelected, onSelect, onChange }: IdpaTargetProps) {

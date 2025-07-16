@@ -3,8 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import ConvexClientProvider from "./ConvexClientProvider";
 import { ClientLayout } from "./ClientLayout";
-import { NextIntlClientProvider } from 'next-intl';
-import { getMessages } from 'next-intl/server';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -58,25 +56,21 @@ export const viewport: Viewport = {
   themeColor: "#0a0a0a",
 };
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const messages = await getMessages();
-
   return (
-    <html lang="es" className="dark">
+    <html lang="en" className="dark">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-slate-950 text-gray-100 min-h-screen`}
       >
-        <NextIntlClientProvider messages={messages}>
-          <ConvexClientProvider>
-            <ClientLayout>
-              {children}
-            </ClientLayout>
-          </ConvexClientProvider>
-        </NextIntlClientProvider>
+        <ConvexClientProvider>
+          <ClientLayout>
+            {children}
+          </ClientLayout>
+        </ConvexClientProvider>
       </body>
     </html>
   );

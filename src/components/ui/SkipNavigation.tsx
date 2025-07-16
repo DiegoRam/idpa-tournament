@@ -1,9 +1,6 @@
 "use client";
 
-import { useTranslations } from 'next-intl';
-
 export function SkipNavigation() {
-  const t = useTranslations('accessibility');
 
   return (
     <a
@@ -16,7 +13,7 @@ export function SkipNavigation() {
         e.currentTarget.scrollIntoView();
       }}
     >
-      {t('skipToContent')}
+      Skip to content
     </a>
   );
 }

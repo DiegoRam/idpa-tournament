@@ -1,7 +1,6 @@
 "use client";
 
 import React from 'react';
-import { useTranslations } from 'next-intl';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from './button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './card';
@@ -48,8 +47,6 @@ class ErrorBoundaryClass extends React.Component<ErrorBoundaryProps, ErrorBounda
 }
 
 function DefaultErrorFallback({ error, retry }: { error: Error; retry: () => void }) {
-  const t = useTranslations('errors');
-
   return (
     <div 
       className="flex items-center justify-center min-h-[400px] p-4"
@@ -62,10 +59,10 @@ function DefaultErrorFallback({ error, retry }: { error: Error; retry: () => voi
             <AlertTriangle className="h-6 w-6 text-destructive" aria-hidden="true" />
           </div>
           <CardTitle className="text-lg font-semibold">
-            {t('generic')}
+            Something went wrong
           </CardTitle>
           <CardDescription>
-            {error.message || t('generic')}
+            {error.message || 'An unexpected error occurred'}
           </CardDescription>
         </CardHeader>
         <CardContent className="text-center">

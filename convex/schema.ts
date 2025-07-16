@@ -253,6 +253,7 @@ export default defineSchema({
     // Visual stage designer data
     diagram: v.object({
       elements: v.array(v.object({
+        id: v.string(), // Unique element identifier
         type: v.string(), // wall, target, fault_line, etc.
         position: v.object({ x: v.number(), y: v.number() }),
         rotation: v.number(),

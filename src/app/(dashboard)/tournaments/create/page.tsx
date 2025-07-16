@@ -228,7 +228,7 @@ export default function CreateTournamentPage() {
         await publishTournament({ tournamentId });
       }
 
-      router.push(`/dashboard/tournaments`);
+      router.push(`/tournaments`);
     } catch (error: unknown) {
       const errorMessage = error instanceof Error ? error.message : "Failed to create tournament";
       setError(errorMessage);

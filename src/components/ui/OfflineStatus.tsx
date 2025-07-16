@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useTranslations } from 'next-intl';
 import { Wifi, WifiOff, RotateCw, CheckCircle, AlertCircle } from 'lucide-react';
 import { Badge } from './badge';
 import { cn } from '@/lib/utils';
@@ -10,7 +9,6 @@ export function OfflineStatus() {
   const [isOnline, setIsOnline] = useState(true);
   const [syncStatus, setSyncStatus] = useState<'idle' | 'syncing' | 'success' | 'error'>('idle');
   const [pendingActions, setPendingActions] = useState(0);
-  const t = useTranslations('offline');
 
   useEffect(() => {
     const updateOnlineStatus = () => {
@@ -76,7 +74,7 @@ export function OfflineStatus() {
             <WifiOff className="h-4 w-4" aria-hidden="true" />
           )}
           <span className="text-sm font-medium">
-            {isOnline ? 'Online' : t('title')}
+            {isOnline ? 'Online' : 'Offline'}
           </span>
         </Badge>
 
@@ -96,11 +94,11 @@ export function OfflineStatus() {
               <AlertCircle className="h-4 w-4" aria-hidden="true" />
             )}
             <span className="text-sm font-medium">
-              {syncStatus === 'syncing' && t('sync')}
-              {syncStatus === 'success' && t('synced')}
+              {syncStatus === 'syncing' && 'Syncing...'}
+              {syncStatus === 'success' && 'Synced'}
               {syncStatus === 'error' && 'Sync Error'}
               {syncStatus === 'idle' && pendingActions > 0 && (
-                `${pendingActions} ${t('pending')}`
+                `${pendingActions} pending`
               )}
             </span>
           </Badge>

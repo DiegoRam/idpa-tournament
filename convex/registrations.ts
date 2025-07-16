@@ -31,11 +31,13 @@ export const registerForTournament = mutation({
     // Check registration window
     const now = Date.now();
     if (now < tournament.registrationOpens) {
-      throw new Error("Registration has not opened yet");
+      const opensDate = new Date(tournament.registrationOpens);
+      throw new Error(`Registration opens on ${opensDate.toLocaleDateString()} at ${opensDate.toLocaleTimeString()}`);
     }
 
     if (now > tournament.registrationCloses) {
-      throw new Error("Registration has closed");
+      const closedDate = new Date(tournament.registrationCloses);
+      throw new Error(`Registration closed on ${closedDate.toLocaleDateString()} at ${closedDate.toLocaleTimeString()}`);
     }
 
     // Check if division is allowed in tournament

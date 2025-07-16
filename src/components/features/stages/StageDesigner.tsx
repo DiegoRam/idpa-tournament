@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useCallback, useRef } from 'react';
-import { Stage, Layer, Line, Text } from 'react-konva';
+import { Stage, Layer, Line, Text, Rect } from 'react-konva';
 import Konva from 'konva';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ import {
   WallElement,
   FaultLineElement,
   StartPositionElement,
+  VisionBarrierElement,
 } from '@/types/stage-designer';
 import { GRID_SIZE, snapToGrid, pixelsToYards } from './utils/geometry';
 import { Save, ZoomIn, ZoomOut, Grid3x3 } from 'lucide-react';
@@ -73,10 +74,13 @@ export function StageDesigner({
     
     // Handle different tools
     if (selectedTool === 'select') {
-      // Clicking on empty space deselects all
-      if (e.target === stage) {
+      // Clicking on empty space (stage background) deselects all
+      // But not if we clicked on an element
+      const clickedOnStage = e.target === stage || e.target.parent === stage;
+      if (clickedOnStage) {
         setSelectedElements([]);
       }
+      return; // Don't create elements in select mode
     } else if (selectedTool === 'measure') {
       if (!measureStart) {
         setMeasureStart(position);
@@ -172,6 +176,49 @@ export function StageDesigner({
             },
           } as StartPositionElement;
           break;
+          
+        case 'vision-barrier':
+          newElement = {
+            id: generateId(),
+            type: 'vision-barrier',
+            position,
+            rotation: 0,
+            properties: {
+              width: 100,
+              height: 150,
+            },
+          };
+          break;
+          
+        case 'movement-arrow':
+          newElement = {
+            id: generateId(),
+            type: 'movement-arrow',
+            position,
+            rotation: 0,
+            properties: {
+              points: [
+                position,
+                { x: position.x + 60, y: position.y },
+              ],
+              label: 'Move',
+            },
+          };
+          break;
+          
+        case 'text':
+          newElement = {
+            id: generateId(),
+            type: 'text',
+            position,
+            rotation: 0,
+            properties: {
+              text: 'Text',
+              fontSize: 16,
+              fontWeight: 'normal',
+            },
+          };
+          break;
       }
       
       if (newElement) {
@@ -180,6 +227,7 @@ export function StageDesigner({
           elements: [...diagram.elements, newElement],
         });
         setSelectedElements([newElement.id]);
+        // Automatically switch to select mode after placing an element
         setSelectedTool('select');
       }
     }
@@ -229,27 +277,66 @@ export function StageDesigner({
   const renderElement = (element: StageElement) => {
     const isSelected = selectedElements.includes(element.id);
     const commonProps = {
-      key: element.id,
       element,
       isSelected,
-      onSelect: () => handleElementSelect(element.id),
+      onSelect: () => {
+        if (selectedTool === 'select') {
+          handleElementSelect(element.id);
+        }
+      },
       onChange: handleElementChange,
     };
     
     switch (element.type) {
       case 'idpa-target':
-        return <IdpaTarget {...commonProps} element={element as IdpaTargetElement} />;
+        return <IdpaTarget key={element.id} {...commonProps} element={element as IdpaTargetElement} />;
       case 'steel-target':
-        return <SteelTarget {...commonProps} element={element as SteelTargetElement} />;
+        return <SteelTarget key={element.id} {...commonProps} element={element as SteelTargetElement} />;
       case 'hard-cover':
       case 'soft-cover':
-        return <Cover {...commonProps} element={element as CoverElement} />;
+        return <Cover key={element.id} {...commonProps} element={element as CoverElement} />;
       case 'wall':
-        return <Wall {...commonProps} element={element as WallElement} />;
+        return <Wall key={element.id} {...commonProps} element={element as WallElement} />;
       case 'fault-line':
-        return <FaultLine {...commonProps} element={element as FaultLineElement} />;
+        return <FaultLine key={element.id} {...commonProps} element={element as FaultLineElement} />;
       case 'start-position':
-        return <StartPosition {...commonProps} element={element as StartPositionElement} />;
+        return <StartPosition key={element.id} {...commonProps} element={element as StartPositionElement} />;
+      case 'vision-barrier':
+        // Render as a semi-transparent gray rectangle for now
+        const vbElement = element as VisionBarrierElement;
+        return (
+          <Rect
+            key={element.id}
+            x={element.position.x}
+            y={element.position.y}
+            width={vbElement.properties?.width || 100}
+            height={vbElement.properties?.height || 150}
+            fill="#666666"
+            opacity={0.7}
+            stroke={isSelected ? '#00FF00' : '#999999'}
+            strokeWidth={isSelected ? 2 : 1}
+            draggable={selectedTool === 'select'}
+            onClick={() => {
+              if (selectedTool === 'select') {
+                handleElementSelect(element.id);
+              }
+            }}
+            onDragEnd={(e) => {
+              const node = e.target;
+              handleElementChange({
+                ...element,
+                position: {
+                  x: node.x(),
+                  y: node.y(),
+                },
+              });
+            }}
+          />
+        );
+      case 'movement-arrow':
+      case 'text':
+        // For now, skip rendering these elements until we implement them
+        return null;
       default:
         return null;
     }
@@ -260,7 +347,14 @@ export function StageDesigner({
       {/* Left sidebar - Element Library */}
       {!readOnly && (
         <ElementLibrary
-          onSelectElement={(type) => setSelectedTool(type as Tool)}
+          onSelectElement={(type) => {
+            if (type === 'select' || type === 'measure') {
+              setSelectedTool(type);
+            } else {
+              // If it's an element type, set it as the selected tool
+              setSelectedTool(type as Tool);
+            }
+          }}
           selectedTool={selectedTool}
         />
       )}
@@ -361,7 +455,7 @@ export function StageDesigner({
             scaleY={zoom}
             onClick={handleStageClick}
             onMouseMove={handleMouseMove}
-            className="cursor-crosshair"
+            className={selectedTool === 'select' ? 'cursor-default' : 'cursor-crosshair'}
           >
             {/* Grid layer */}
             {showGrid && (

@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 
 interface LoadingSpinnerProps {
@@ -14,8 +13,6 @@ export function LoadingSpinner({
   className,
   label 
 }: LoadingSpinnerProps) {
-  const t = useTranslations('accessibility');
-  
   const sizeClasses = {
     sm: 'h-4 w-4',
     md: 'h-6 w-6',
@@ -26,7 +23,7 @@ export function LoadingSpinner({
     <div 
       className={cn("inline-flex items-center gap-2", className)}
       role="status"
-      aria-label={label || t('loading')}
+      aria-label={label || 'Loading'}
     >
       <svg
         className={cn(
@@ -52,7 +49,7 @@ export function LoadingSpinner({
         />
       </svg>
       <span className="sr-only">
-        {label || t('loading')}
+        {label || 'Loading'}
       </span>
     </div>
   );

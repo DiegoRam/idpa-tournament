@@ -20,7 +20,7 @@ import {
 import { ElementType } from '@/types/stage-designer';
 
 interface ElementLibraryProps {
-  onSelectElement: (type: ElementType) => void;
+  onSelectElement: (type: ElementType | 'select' | 'measure') => void;
   selectedTool: ElementType | 'select' | 'pan' | 'measure';
 }
 
@@ -137,7 +137,7 @@ export function ElementLibrary({ onSelectElement, selectedTool }: ElementLibrary
                   variant={selectedTool === 'select' ? 'secondary' : 'ghost'}
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => onSelectElement('select' as ElementType)}
+                  onClick={() => onSelectElement('select')}
                 >
                   <div className="w-4 h-4 mr-2">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
@@ -150,7 +150,7 @@ export function ElementLibrary({ onSelectElement, selectedTool }: ElementLibrary
                   variant={selectedTool === 'measure' ? 'secondary' : 'ghost'}
                   size="sm"
                   className="w-full justify-start"
-                  onClick={() => onSelectElement('measure' as ElementType)}
+                  onClick={() => onSelectElement('measure')}
                 >
                   <Ruler className="h-4 w-4 mr-2" />
                   Measure
